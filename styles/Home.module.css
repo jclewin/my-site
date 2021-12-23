@@ -1,22 +1,129 @@
 .container {
-  padding: 0 2rem;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  pointer-events: none;
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  overflow-y: hidden;
 }
 
 .main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  grid-column-start: 2;
+}
+
+.mainhello {
   min-height: 100vh;
-  padding: 4rem 0;
+  padding: 0px 0px 0px 100px;
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
-.footer {
+.mainhello1 {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  display: inline-block;
+}
+
+.sideBar {
+  height: 100vh;
+  top: 0px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #3e00717a;
+  position: fixed;
+  overflow: hidden;
+}
+
+.logoContainer {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  padding-top: 5px;
+  top: 0px;
+  left: 0px;
+  width: 150px;
+  background-color: #ffffff7a;
+  text-align: center;
+}
+
+.logoimage {
+  display: block;
+  margin-top: 10px;
+}
+
+.name {
+  display: block;
+  width: 150px;
+  padding-top: 10px;
+  text-align: center;
+  color: #ffffff;
+}
+.name2 {
+  display: block;
+  width: 150px;
+  padding-top: 5px;
+  padding-bottom: 10px;
+  text-align: center;
+  color: #ffffff;
+}
+
+.center {
+  display: flex;
+  flex-direction: column;
+  top: 20px;
+  display: block;
+  margin: auto;
+  width: 60%;
+
+  /* animation: rotation 8s infinite linear; */
+}
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
+}
+
+.block {
+  display: block;
+  width: 100%;
+  border: 1px solid #e6c8ff8e;
+  background-color: #3e00717a;
+  padding: 14px 28px;
+  font-size: 16px;
+  cursor: pointer;
+  pointer-events: initial;
+  text-align: center;
+  color: #e6c8ff8e;
+  justify-content: center;
+  align-items: center;
+}
+.block:hover {
+  background-color: #ddd;
+  color: black;
+}
+
+.breakBar {
   display: flex;
   flex: 1;
   padding: 2rem 0;
-  border-top: 1px solid #eaeaea;
+  border-top: 1px solid #00ff62;
   justify-content: center;
   align-items: center;
 }
@@ -29,7 +136,6 @@
 }
 
 .title a {
-  color: #0070f3;
   text-decoration: none;
 }
 
@@ -41,13 +147,53 @@
 
 .title {
   margin: 0;
-  line-height: 1.15;
-  font-size: 4rem;
+  line-height: 1;
+  font-size: 6rem;
+  align-items: left;
+  text-align: left;
+  color: #ffffff;
+  font-family: Helvetica, monospace;
+  white-space: pre-wrap;
+  display: inline-block;
+  /* pointer-events: painted; */
+  /* halp */
 }
 
-.title,
-.description {
-  text-align: center;
+.title:hover,
+.title:active {
+  animation-name: rubberBand;
+  animation-fill-mode: forwards;
+  animation-duration: 0.8s;
+  color: #7641c0;
+}
+
+@keyframes rubberBand {
+  from {
+    transform: scale3d(1, 1, 1);
+  }
+  30% {
+    transform: scale3d(1.25, 0.75, 1);
+  }
+  40% {
+    transform: scale3d(0.75, 1.25, 1);
+  }
+  50% {
+    transform: scale3d(1.15, 0.85, 1);
+  }
+  65% {
+    transform: scale3d(0.95, 1.05, 1);
+  }
+  75% {
+    transform: scale3d(1.05, 0.95, 1);
+  }
+  to {
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+.rubberBand {
+  -webkit-animation-name: rubberBand;
+  animation-name: rubberBand;
 }
 
 .description {
@@ -57,60 +203,49 @@
 }
 
 .code {
-  background: #fafafa;
+  background: #8f562a;
   border-radius: 5px;
   padding: 0.75rem;
   font-size: 1.1rem;
-  font-family: Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono,
-    Bitstream Vera Sans Mono, Courier New, monospace;
-}
-
-.grid {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  max-width: 800px;
-}
-
-.card {
-  margin: 1rem;
-  padding: 1.5rem;
-  text-align: left;
-  color: inherit;
-  text-decoration: none;
-  border: 1px solid #eaeaea;
-  border-radius: 10px;
-  transition: color 0.15s ease, border-color 0.15s ease;
-  max-width: 300px;
+  font-family: DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New,
+    monospace;
 }
 
 .card:hover,
 .card:focus,
 .card:active {
-  color: #0070f3;
-  border-color: #0070f3;
+  color: #dabfff;
+  border-color: #dabfff;
 }
 
-.card h2 {
-  margin: 0 0 1rem 0;
-  font-size: 1.5rem;
+.sideBottom {
+  width: 10000px;
+  /* halp */
+  height: 1000px;
+  justify-content: center;
+  background: #246a73;
+  overflow: hidden;
+}
+.sideBottom1 {
+  width: 10000px;
+  /* halp */
+  height: 1000px;
+  justify-content: center;
+  background: #ff9100;
+  overflow: hidden;
 }
 
-.card p {
-  margin: 0;
-  font-size: 1.25rem;
-  line-height: 1.5;
-}
-
-.logo {
-  height: 1em;
-  margin-left: 0.5rem;
-}
-
-@media (max-width: 600px) {
-  .grid {
-    width: 100%;
-    flex-direction: column;
-  }
+.skills {
+  padding-left: 125px;
+  line-height: 1.4;
+  font-size: 6rem;
+  align-items: left;
+  text-align: left;
+  color: #000000;
+  font-family: Helvetica, monospace;
+  white-space: pre-wrap;
+  display: inline-block;
+  justify-content: center;
+  /* pointer-events: painted; */
+  /* halp */
 }
