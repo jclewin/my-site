@@ -2,6 +2,47 @@ import type { NextPage } from "next";
 import styles from "../styles/Home.module.css";
 import FluidAnimation from "react-fluid-animation";
 import Image from "next/image";
+import { Jiggle } from "../components/jiggle";
+import { TagCloud } from "react-tagcloud";
+
+const data = [
+  { value: "JavaScript", count: 38 },
+  { value: "React", count: 30 },
+  { value: "Nodejs", count: 28 },
+  { value: "HTML5", count: 33 },
+  { value: "CSS3", count: 20 },
+  { value: "Jest", count: 15 },
+  { value: "CI / CD", count: 47 },
+  { value: "Git Lab", count: 38 },
+  { value: "React", count: 30 },
+  { value: "Nodejs", count: 28 },
+  { value: "HTML5", count: 33 },
+  { value: "CSS3", count: 20 },
+  { value: "Jest", count: 15 },
+  { value: "React", count: 47 },
+];
+
+const customRenderer = (tag, size, color) => (
+  <span
+    key={tag.value}
+    style={{
+      animation: "blinker 3s linear infinite",
+      animationDelay: `${Math.random() * 2}s`,
+      fontSize: `${size / 2}em`,
+      margin: "15px",
+      padding: "5px",
+      display: "inline-block",
+      color: color,
+    }}
+  >
+    {tag.value}
+  </span>
+);
+
+const options = {
+  luminosity: "light",
+  hue: "blue",
+};
 
 const Home: NextPage = () => {
   return (
@@ -34,83 +75,87 @@ const Home: NextPage = () => {
         <main className={styles.main}>
           <div className={styles.mainhello}>
             <div className={styles.mainhello1}>
-              <h1 className={styles.title}> </h1>
-              <h1 className={styles.title}>I</h1>
-              <h1 className={styles.title}>'</h1>
-              <h1 className={styles.title}>m</h1>
-              <h1 className={styles.title}> </h1>
-              <h1 className={styles.title}>J</h1>
-              <h1 className={styles.title}>o</h1>
-              <h1 className={styles.title}>r</h1>
-              <h1 className={styles.title}>d</h1>
-              <h1 className={styles.title}>a</h1>
-              <h1 className={styles.title}>n</h1>
+              <Jiggle>I</Jiggle>
+              <Jiggle>&apos;</Jiggle>
+              <Jiggle>m</Jiggle>
+              <Jiggle> </Jiggle>
+              <Jiggle>J</Jiggle>
+              <Jiggle>o</Jiggle>
+              <Jiggle>r</Jiggle>
+              <Jiggle>d</Jiggle>
+              <Jiggle>a</Jiggle>
+              <Jiggle>n</Jiggle>
               <br></br>
-              <h1 className={styles.title}> </h1>
-              <h1 className={styles.title}>E</h1>
-              <h1 className={styles.title}>n</h1>
-              <h1 className={styles.title}>g</h1>
-              <h1 className={styles.title}>i</h1>
-              <h1 className={styles.title}>n</h1>
-              <h1 className={styles.title}>e</h1>
-              <h1 className={styles.title}>e</h1>
-              <h1 className={styles.title}>r</h1>
-              <h1 className={styles.title}> </h1>
-              <h1 className={styles.title}>t</h1>
-              <h1 className={styles.title}>u</h1>
-              <h1 className={styles.title}>r</h1>
-              <h1 className={styles.title}>n</h1>
-              <h1 className={styles.title}>e</h1>
-              <h1 className={styles.title}>d</h1>
-              <h1 className={styles.title}> </h1>
-              <h1 className={styles.title}>.</h1>
-              <h1 className={styles.title}> </h1>
-              <h1 className={styles.title}>.</h1>
-              <h1 className={styles.title}> </h1>
-              <h1 className={styles.title}>.</h1>
+              <Jiggle>E</Jiggle>
+              <Jiggle>n</Jiggle>
+              <Jiggle>g</Jiggle>
+              <Jiggle>i</Jiggle>
+              <Jiggle>n</Jiggle>
+              <Jiggle>e</Jiggle>
+              <Jiggle>e</Jiggle>
+              <Jiggle>r</Jiggle>
+              <Jiggle> </Jiggle>
+              <Jiggle>t</Jiggle>
+              <Jiggle>u</Jiggle>
+              <Jiggle>r</Jiggle>
+              <Jiggle>n</Jiggle>
+              <Jiggle>e</Jiggle>
+              <Jiggle>d</Jiggle>
+              <Jiggle> </Jiggle>
+              <Jiggle>.</Jiggle>
+              <Jiggle> </Jiggle>
+              <Jiggle>.</Jiggle>
+              <Jiggle> </Jiggle>
+              <Jiggle>.</Jiggle>
+              <Jiggle> </Jiggle>
               <br></br>
-              <h1 className={styles.title}> </h1>
-              <h1 className={styles.title}>W</h1>
-              <h1 className={styles.title}>e</h1>
-              <h1 className={styles.title}>b</h1>
-              <h1 className={styles.title}> </h1>
-              <h1 className={styles.title}>D</h1>
-              <h1 className={styles.title}>e</h1>
-              <h1 className={styles.title}>v</h1>
-              <h1 className={styles.title}>e</h1>
-              <h1 className={styles.title}>l</h1>
-              <h1 className={styles.title}>o</h1>
-              <h1 className={styles.title}>p</h1>
-              <h1 className={styles.title}>e</h1>
-              <h1 className={styles.title}>r</h1>
-            </div>
-          </div>
-          <div className={styles.sideBottom}>
-            <div>
-              <h1 className={styles.skills}>Skills</h1>
-            </div>
-            <div>
-              <h1 className={styles.skills}>WJames is dope</h1>
+              <Jiggle>W</Jiggle>
+              <Jiggle>e</Jiggle>
+              <Jiggle>b</Jiggle>
+              <Jiggle> </Jiggle>
+              <Jiggle>D</Jiggle>
+              <Jiggle>e</Jiggle>
+              <Jiggle>v</Jiggle>
+              <Jiggle>e</Jiggle>
+              <Jiggle>l</Jiggle>
+              <Jiggle>o</Jiggle>
+              <Jiggle>p</Jiggle>
+              <Jiggle>e</Jiggle>
+              <Jiggle>r</Jiggle>
             </div>
           </div>
 
-          <div className={styles.sideBottom1}>
+          <div className={styles.sideAboutMe}>
             <div>
-              <h1 className={styles.skills}>Projects</h1>
+              <h1 className={styles.text}>About me</h1>
             </div>
           </div>
 
-          <div className={styles.logoimage}>
-            <Image src="/logo.svg" alt="Vercel Logo" width={200} height={200} />
+          <div className={styles.sideSkills}>
+            <div>
+              <h1 className={styles.text}>Skills</h1>
+              <h1 className={styles.skillsText}>
+                <TagCloud
+                  tags={data}
+                  minSize={3}
+                  maxSize={7}
+                  renderer={customRenderer}
+                  colorOptions={options}
+                />
+              </h1>
+            </div>
           </div>
-          <div className={styles.logoimage}>
-            <Image src="/logo.svg" alt="Vercel Logo" width={200} height={200} />
+
+          <div className={styles.sideProjects}>
+            <div>
+              <h1 className={styles.text}>Projects</h1>
+            </div>
           </div>
-          <div className={styles.logoimage}>
-            <Image src="/logo.svg" alt="Vercel Logo" width={200} height={200} />
-          </div>
-          <div className={styles.logoimage}>
-            <Image src="/logo.svg" alt="Vercel Logo" width={200} height={200} />
+
+          <div className={styles.sideContactMe}>
+            <div>
+              <h1 className={styles.text}>Projects</h1>
+            </div>
           </div>
         </main>
       </div>
