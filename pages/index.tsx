@@ -12,14 +12,14 @@ const data = [
   { value: "HTML5", count: 33 },
   { value: "CSS3", count: 20 },
   { value: "Jest", count: 15 },
-  { value: "CI / CD", count: 47 },
-  { value: "Git Lab", count: 38 },
+  { value: "CI/CD", count: 47 },
+  { value: "Typescript", count: 28 },
+  { value: "Agile", count: 33 },
+  { value: "Full Stack", count: 20 },
+  { value: "Git", count: 15 },
+  { value: "NEXTjs", count: 38 },
   { value: "React", count: 30 },
   { value: "Nodejs", count: 28 },
-  { value: "HTML5", count: 33 },
-  { value: "CSS3", count: 20 },
-  { value: "Jest", count: 15 },
-  { value: "React", count: 47 },
 ];
 
 const customRenderer = (tag, size, color) => (
@@ -62,12 +62,21 @@ const Home: NextPage = () => {
           <button type="button" className={styles.block}>
             About me
           </button>
+          <div className={styles.squiggle}>
+            <Image src="/line.svg" alt="divider" width={120} height={10} />
+          </div>
           <button type="button" className={styles.block}>
             Skills
           </button>
+          <div className={styles.squiggle}>
+            <Image src="/line.svg" alt="divider" width={120} height={10} />
+          </div>
           <button type="button" className={styles.block}>
             Projects
           </button>
+          <div className={styles.squiggle}>
+            <Image src="/line.svg" alt="divider" width={120} height={10} />
+          </div>
           <button type="button" className={styles.block}>
             Contact me
           </button>
@@ -127,34 +136,44 @@ const Home: NextPage = () => {
 
           <div className={styles.sideAboutMe}>
             <div>
-              <h1 className={styles.text}>About me</h1>
+              <h1 className={styles.textCatTitle}>About me</h1>
             </div>
           </div>
 
           <div className={styles.sideSkills}>
-            <div>
-              <h1 className={styles.text}>Skills</h1>
-              <h1 className={styles.skillsText}>
-                <TagCloud
-                  tags={data}
-                  minSize={3}
-                  maxSize={7}
-                  renderer={customRenderer}
-                  colorOptions={options}
-                />
-              </h1>
+            <h1 className={styles.textCatTitle}>Skills</h1>
+            <div className={styles.containerSkills}>
+              <div className={styles.itemLeft}>
+                <h1 className={styles.skillsText}>
+                  <TagCloud
+                    tags={data}
+                    minSize={3}
+                    maxSize={7}
+                    renderer={customRenderer}
+                    colorOptions={options}
+                  />
+                </h1>
+              </div>
+
+              <div className={styles.itemRight}>
+                <p className={styles.text}>
+                  ben is a mean one. ben is smelly. ben likes to eat poop is
+                  where i will talk about random shit about my skill and how it
+                  is the best ever
+                </p>
+              </div>
             </div>
           </div>
 
           <div className={styles.sideProjects}>
             <div>
-              <h1 className={styles.text}>Projects</h1>
+              <h1 className={styles.textCatTitle}>Projects</h1>
             </div>
           </div>
 
           <div className={styles.sideContactMe}>
             <div>
-              <h1 className={styles.text}>Projects</h1>
+              <h1 className={styles.textCatTitle}>Contact Me</h1>
             </div>
           </div>
         </main>
