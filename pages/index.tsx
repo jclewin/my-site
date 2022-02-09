@@ -18,8 +18,6 @@ const data = [
   { value: "Full Stack", count: 20 },
   { value: "Git", count: 15 },
   { value: "NEXTjs", count: 38 },
-  { value: "React", count: 30 },
-  { value: "Nodejs", count: 28 },
 ];
 
 const customRenderer = (tag, size, color) => (
@@ -29,8 +27,8 @@ const customRenderer = (tag, size, color) => (
       animation: "blinker 3s linear infinite",
       animationDelay: `${Math.random() * 2}s`,
       fontSize: `${size / 2}em`,
-      margin: "15px",
-      padding: "5px",
+      margin: "10px",
+      padding: "20px",
       display: "inline-block",
       color: color,
     }}
@@ -137,6 +135,23 @@ const Home: NextPage = () => {
           <div className={styles.sideAboutMe}>
             <div>
               <h1 className={styles.textCatTitle}>About me</h1>
+              <div className={styles.sideAboutMe}>
+                <div className={styles.containerAnoutMe}>
+                  <div className={styles.itemMeLeft}>
+                    <p className={styles.text}>meeee it is meeee</p>
+                  </div>
+                  <div className={styles.itemMeRight}>
+                    <div className={styles.logoImageMe}>
+                      <Image
+                        src="/jordan2.svg"
+                        alt="Logo"
+                        width={150}
+                        height={150}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -157,9 +172,10 @@ const Home: NextPage = () => {
 
               <div className={styles.itemRight}>
                 <p className={styles.text}>
-                  ben is a mean one. ben is smelly. ben likes to eat poop is
-                  where i will talk about random shit about my skill and how it
-                  is the best ever
+                  Full stack Developer, with a frontend flare. Focusing on
+                  astatically pleasing user design. <br></br>
+                  <br></br>Where form meets function. Good UI needs no
+                  explanation,if you have to explain your UI, your UI is bad
                 </p>
               </div>
             </div>
