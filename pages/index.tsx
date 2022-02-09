@@ -138,7 +138,7 @@ const Home: NextPage = () => {
               <div className={styles.sideAboutMe}>
                 <div className={styles.containerAnoutMe}>
                   <div className={styles.itemMeLeft}>
-                    <p className={styles.text}>meeddee it is meeee</p>
+                    <p className={styles.text}>meeddeye it is meeee</p>
                   </div>
                   <div className={styles.itemMeRight}>
                     <div className={styles.logoImageMe}>
