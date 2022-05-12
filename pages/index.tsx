@@ -6,18 +6,18 @@ import { Jiggle } from "../components/jiggle";
 import { TagCloud } from "react-tagcloud";
 
 const data = [
-  { value: "JavaScript", count: 38 },
-  { value: "React", count: 30 },
-  { value: "Nodejs", count: 28 },
-  { value: "HTML5", count: 33 },
-  { value: "CSS3", count: 20 },
+  { value: "JavaScript", count: 40 },
+  { value: "React", count: 40 },
+  { value: "Nodejs", count: 20 },
+  { value: "HTML5", count: 35 },
+  { value: "CSS3", count: 35 },
   { value: "Jest", count: 15 },
-  { value: "CI/CD", count: 47 },
-  { value: "Typescript", count: 28 },
-  { value: "Agile", count: 33 },
-  { value: "Full Stack", count: 20 },
-  { value: "Git", count: 15 },
-  { value: "NEXTjs", count: 38 },
+  { value: "CI/CD", count: 30 },
+  { value: "Typescript", count: 35 },
+  { value: "Agile", count: 20 },
+  { value: "Full Stack", count: 30 },
+  { value: "Git", count: 30 },
+  { value: "NEXTjs", count: 25 },
 ];
 
 const customRenderer = (tag, size, color) => (
@@ -48,15 +48,23 @@ const Home: NextPage = () => {
       <FluidAnimation />
       <div className={styles.container}>
         <div className={styles.sideBar}>
-          <div className={styles.logoContainer}>
-            <span className={styles.center}>
-              <div className={styles.logoimage}>
-                <Image src="/jordan2.svg" alt="Logo" width={150} height={150} />
-              </div>
-            </span>
-            <div className={styles.name}>Jordan </div>
-            <div className={styles.name2}>Web Developer</div>
+          <div className={styles.logoColourContainer}>
+            <div className={styles.logoContainer}>
+              <span className={styles.center}>
+                <div className={styles.logoimage}>
+                  <Image
+                    src="/jordan2.svg"
+                    alt="Logo"
+                    width={150}
+                    height={150}
+                  />
+                </div>
+              </span>
+              <div className={styles.name}>Jordan </div>
+              <div className={styles.name2}>Web Developer</div>
+            </div>
           </div>
+          <div className={styles.logoContainer2}></div>
           <button type="button" className={styles.block}>
             About me
           </button>
@@ -138,10 +146,15 @@ const Home: NextPage = () => {
               <div className={styles.sideAboutMe}>
                 <div className={styles.containerAnoutMe}>
                   <div className={styles.itemMeLeft}>
-                    <p className={styles.text}>mewwww it is meeee</p>
+                    <p className={styles.text}>
+                      Full stack Developer, with a frontend flare. Focusing on
+                      astatically pleasing user design. <br></br>
+                      <br></br>Where form meets function. Good UI needs no
+                      explanation,if you have to explain your UI, your UI is bad
+                    </p>
                   </div>
                   <div className={styles.itemMeRight}>
-                    <div className={styles.logoImageMe}>
+                    <div className={styles.ImageMe}>
                       <Image
                         src="/jordan2.svg"
                         alt="Logo"
