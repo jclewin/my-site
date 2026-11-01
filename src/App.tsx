@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import "./App.css";
+import ProfilePortrait from "./ProfilePortrait";
 import Skills from "./skills";
 import SynthwaveSheen from "./SynthwaveSheen";
 
@@ -94,7 +95,7 @@ function App() {
         }
       }
 
-      const marker = NAV_HEIGHT + 24;
+      const marker = NAV_HEIGHT + 56;
       let currentId = "";
       if (window.scrollY > 24) {
         nav
@@ -134,6 +135,66 @@ function App() {
     };
   }, []);
 
+  const goToProfile = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+    const copy = document.querySelector<HTMLElement>(".profile-copy");
+    if (!copy) return;
+    event.preventDefault();
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const narrow = window.matchMedia("(max-width: 760px)").matches;
+    const imageTop = narrow ? 132 : 148;
+    const frame = document.querySelector<HTMLElement>(".profile-frame");
+    const meet = narrow ? imageTop + (frame?.offsetHeight ?? 0) + 28 : imageTop;
+    const held =
+      parseFloat(copy.style.transform.replace(/[^\d.-]/g, "")) || 0;
+    const docTop = copy.getBoundingClientRect().top - held + window.scrollY;
+    history.pushState(null, "", "#profile");
+    window.scrollTo({
+      top: Math.max(0, Math.ceil(docTop - meet)),
+      behavior: reduced ? "auto" : "smooth",
+    });
+  };
+
+  const goToSkills = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+    const pin = document.querySelector<HTMLElement>(".skills-pin");
+    if (!pin) return;
+    event.preventDefault();
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const stickyTop = 132;
+    const pinTop = pin.getBoundingClientRect().top + window.scrollY;
+    let top = pinTop - stickyTop;
+    if (!reduced) {
+      const releaseTravel = Math.max(
+        1,
+        pin.offsetHeight - (window.innerHeight - stickyTop),
+      );
+      const travel = Math.max(1, releaseTravel - window.innerHeight * 0.35);
+      top = pinTop - stickyTop + travel;
+    }
+    history.pushState(null, "", "#skills");
+    window.scrollTo({
+      top: Math.max(0, Math.ceil(top)),
+      behavior: reduced ? "auto" : "smooth",
+    });
+  };
+
   const goHome = () => {
     if (location.hash) {
       history.pushState(null, "", `${location.pathname}${location.search}`);
@@ -150,13 +211,13 @@ function App() {
     <>
       <header ref={navRef} className="nav">
         <div className="nav-plate">
-          <a href="#profile">
+          <a href="#profile" onClick={goToProfile}>
             Profile
             <span className="line" aria-hidden="true">
               <SynthwaveSheen className="line-sheen" />
             </span>
           </a>
-          <a href="#skills">
+          <a href="#skills" onClick={goToSkills}>
             Skills
             <span className="line" aria-hidden="true">
               <SynthwaveSheen className="line-sheen" />
@@ -202,10 +263,30 @@ function App() {
       <main>
         <div className="hero" id="home" />
 
-        <section id="profile" className="section">
-          <p className="eyebrow">Profile</p>
-          <h2>Profile</h2>
-          <p className="lede">A short introduction can live here.</p>
+        <section id="profile" className="profile-pin">
+          <div className="profile-stage">
+            <div className="profile-slot">
+              <ProfilePortrait />
+            </div>
+            <div className="profile-copy">
+              <p className="eyebrow">Profile</p>
+              <h2>JL</h2>
+              <p className="profile-role">
+                Full-stack developer and technical lead
+              </p>
+              <p className="lede">
+                Six years building microservices and internal developer portals.
+                I treat every change as part of a wider web of services, teams,
+                and workflows, and I look for the side effects before they
+                spread.
+              </p>
+              <p className="lede">
+                At TELUS I led full-stack teams shipping OpenShift applications,
+                automated workflows for more than 200 engineering teams, and
+                took features from Figma through to deployment.
+              </p>
+            </div>
+          </div>
         </section>
 
         <section id="skills" className="section section-skills">

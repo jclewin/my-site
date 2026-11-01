@@ -219,11 +219,13 @@ export default function Skills() {
       const reduced = motionQuery.matches;
       let progress = 1;
       if (!reduced) {
-        const stickyTop = 96;
-        const travel = Math.max(
+        const stickyTop = 132;
+        const releaseTravel = Math.max(
           1,
           pin.offsetHeight - (window.innerHeight - stickyTop),
         );
+        const settle = window.innerHeight * 0.35;
+        const travel = Math.max(1, releaseTravel - settle);
         progress = clamp(
           (stickyTop - pin.getBoundingClientRect().top) / travel,
           0,
