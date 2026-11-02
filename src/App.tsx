@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import "./App.css";
+import Contact from "./Contact";
 import ProfilePortrait from "./ProfilePortrait";
 import Skills from "./skills";
 import SynthwaveSheen from "./SynthwaveSheen";
@@ -228,7 +229,7 @@ function App() {
           </a>
           <span className="nav-mark" aria-hidden="true" />
           <a href="#projects">
-            Things I've Done
+            Projects
             <span className="line" aria-hidden="true">
               <SynthwaveSheen className="line-sheen" />
             </span>
@@ -298,15 +299,11 @@ function App() {
 
         <section id="projects" className="section">
           <p className="eyebrow">Projects</p>
-          <h2>Projects</h2>
+          <h2>Things I've Done</h2>
           <p className="lede">Another section, ready when you are.</p>
         </section>
 
-        <section id="contact" className="section">
-          <p className="eyebrow">Contact</p>
-          <h2>Contact Me</h2>
-          <p className="lede">And one more beside it.</p>
-        </section>
+        <Contact />
       </main>
     </>
   );

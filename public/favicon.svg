@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 20">
+  <defs>
+    <linearGradient id="sheen" x1="0" y1="0" x2="44" y2="20" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2DE2E6"/>
+      <stop offset="0.42" stop-color="#7B8CFF"/>
+      <stop offset="0.74" stop-color="#FF76FF"/>
+      <stop offset="1" stop-color="#9A3FE0"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#sheen)" d="M0 0H20V20H0V12H4V16H16V4H0Z M24 0H28V16H44V20H24Z"/>
+</svg>
