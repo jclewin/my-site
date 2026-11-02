@@ -148,13 +148,14 @@ function App() {
     const copy = document.querySelector<HTMLElement>(".profile-copy");
     if (!copy) return;
     event.preventDefault();
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
     const narrow = window.matchMedia("(max-width: 760px)").matches;
     const imageTop = narrow ? 132 : 148;
     const frame = document.querySelector<HTMLElement>(".profile-frame");
     const meet = narrow ? imageTop + (frame?.offsetHeight ?? 0) + 28 : imageTop;
-    const held =
-      parseFloat(copy.style.transform.replace(/[^\d.-]/g, "")) || 0;
+    const held = parseFloat(copy.style.transform.replace(/[^\d.-]/g, "")) || 0;
     const docTop = copy.getBoundingClientRect().top - held + window.scrollY;
     history.pushState(null, "", "#profile");
     window.scrollTo({
@@ -176,7 +177,9 @@ function App() {
     const pin = document.querySelector<HTMLElement>(".skills-pin");
     if (!pin) return;
     event.preventDefault();
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
     const stickyTop = 132;
     const pinTop = pin.getBoundingClientRect().top + window.scrollY;
     let top = pinTop - stickyTop;
@@ -270,7 +273,7 @@ function App() {
             </div>
             <div className="profile-copy">
               <p className="eyebrow">Profile</p>
-              <h2>JL</h2>
+              <h2>Jordan Lewin</h2>
               <p className="profile-role">
                 Full-stack developer and technical lead
               </p>

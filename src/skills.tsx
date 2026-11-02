@@ -150,7 +150,12 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
-function startXFor(index: number, count: number, left: number, cardLeft: number) {
+function startXFor(
+  index: number,
+  count: number,
+  left: number,
+  cardLeft: number,
+) {
   const span = Math.max(64, cardLeft - left - 18);
   const step = span / Math.max(1, count - 1);
   return left + (count - 1 - index) * step;
@@ -239,7 +244,12 @@ export default function Skills() {
       const naturalCardLeft =
         board.offsetLeft + groupsEl.offsetLeft + groups[0].offsetLeft;
       const natural = groups.map((group, index) => {
-        const startX = startXFor(index, groups.length, originX, naturalCardLeft);
+        const startX = startXFor(
+          index,
+          groups.length,
+          originX,
+          naturalCardLeft,
+        );
         const endX = board.offsetLeft + groupsEl.offsetLeft + group.offsetLeft;
         const endY =
           board.offsetTop +
@@ -271,10 +281,16 @@ export default function Skills() {
       const meRect = me.getBoundingClientRect();
       const visualOriginX = meRect.left - stageRect.left;
       const visualOriginY = meRect.bottom - stageRect.top + 8;
-      const visualCardLeft = groups[0].getBoundingClientRect().left - stageRect.left;
+      const visualCardLeft =
+        groups[0].getBoundingClientRect().left - stageRect.left;
       groups.forEach((group, index) => {
         const rect = group.getBoundingClientRect();
-        const startX = startXFor(index, groups.length, visualOriginX, visualCardLeft);
+        const startX = startXFor(
+          index,
+          groups.length,
+          visualOriginX,
+          visualCardLeft,
+        );
         const endX = rect.left - stageRect.left;
         const endY = rect.top + rect.height / 2 - stageRect.top;
         const path = paths[index];
@@ -319,31 +335,31 @@ export default function Skills() {
     <div ref={pinRef} className={armed ? "skills-pin is-armed" : "skills-pin"}>
       <div ref={stageRef} className="skills-stage">
         <svg className="skills-traces" aria-hidden="true">
-            <defs>
-              <linearGradient
-                ref={gradientRef}
-                id="skill-trace"
-                gradientUnits="userSpaceOnUse"
-              >
-                <stop offset="0%" stopColor="#ffd319" />
-                <stop offset="46%" stopColor="#2de2e6" />
-                <stop offset="100%" stopColor="#ff76ff" />
-              </linearGradient>
-            </defs>
-            {STACK.map((group, index) => (
-              <path
-                key={group.id}
-                ref={(node) => {
-                  pathRefs.current[index] = node;
-                }}
-                stroke="url(#skill-trace)"
-              />
-            ))}
-          </svg>
+          <defs>
+            <linearGradient
+              ref={gradientRef}
+              id="skill-trace"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop offset="0%" stopColor="#ffd319" />
+              <stop offset="46%" stopColor="#2de2e6" />
+              <stop offset="100%" stopColor="#ff76ff" />
+            </linearGradient>
+          </defs>
+          {STACK.map((group, index) => (
+            <path
+              key={group.id}
+              ref={(node) => {
+                pathRefs.current[index] = node;
+              }}
+              stroke="url(#skill-trace)"
+            />
+          ))}
+        </svg>
         <div ref={meRef} className="skills-intro">
           <p className="eyebrow">Skills</p>
-          <h2>me</h2>
-          <p className="lede">The things you work with.</p>
+          <h2>What I Can Do</h2>
+          <p className="lede">The things I can work with.</p>
         </div>
         <div ref={boardRef} className="skills-board">
           <div ref={groupsRef} className="skills-groups">

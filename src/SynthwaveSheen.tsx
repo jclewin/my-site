@@ -26,10 +26,12 @@ vec3 ramp(float t) {
 
   float u = fract(t);
   u = u < 0.5 ? u * 2.0 : (1.0 - u) * 2.0;
+  // The fold only travels through the low end of this wave, so purple
+  // has to sit in that range or it never shows up as more than an edge.
   vec3 color = yellow;
-  color = mix(color, cyan, smoothstep(0.0, 0.22, u));
-  color = mix(color, pink, smoothstep(0.22, 0.46, u));
-  color = mix(color, purple, smoothstep(0.46, 0.68, u));
+  color = mix(color, cyan, smoothstep(0.0, 0.11, u));
+  color = mix(color, pink, smoothstep(0.08, 0.17, u));
+  color = mix(color, purple, smoothstep(0.14, 0.26, u));
   return color;
 }
 
@@ -47,9 +49,11 @@ void main() {
   float zoom = mix(4.6, 1.0, smoothstep(0.12, 0.5, cover));
   uv += fromCenter * (zoom - 1.0);
   uv += (uMouse - vec2(0.5)) * 0.1;
-  uv /= 1.15;
 
-  float drift = uTime * 0.11;
+  // Same warp as the iridescence field. Multiplying uv by the running
+  // fold makes the color regions curl and travel, instead of nudging
+  // a nearly fixed band pattern.
+  float drift = uTime * 0.5;
   float d = -drift;
   float a = 0.0;
   for (int i = 0; i < 8; i++) {
@@ -59,18 +63,15 @@ void main() {
   }
   d += drift;
 
-  float bands = cos(uv.x * 1.35 + d * 0.22) * 0.5 + 0.5;
-  float cross = cos(uv.y * 1.05 + a * 0.18) * 0.5 + 0.5;
-  vec3 col = ramp(bands * 0.62 + cross * 0.38);
+  vec3 tone = vec3(cos(uv * vec2(d, a)) * 0.6 + 0.4, cos(a + d) * 0.5 + 0.5);
+  tone = cos(tone * cos(vec3(d, a, 2.5)) * 0.5 + 0.5);
+  float t = dot(tone, vec3(0.42, 0.36, 0.22)) * 0.5 + 0.5;
+  vec3 col = ramp(t);
   gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }
 `;
 
-function compile(
-  gl: WebGLRenderingContext,
-  type: number,
-  source: string,
-) {
+function compile(gl: WebGLRenderingContext, type: number, source: string) {
   const shader = gl.createShader(type);
   if (!shader) return null;
   gl.shaderSource(shader, source);
@@ -129,7 +130,9 @@ export default function SynthwaveSheen({
     const pointer = { x: 0.5, y: 0.5 };
     let originX = 0;
     let originY = 0;
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
     let width = 1;
     let height = 1;
     let frame = 0;
