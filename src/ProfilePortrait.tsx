@@ -64,11 +64,7 @@ function clamp(value: number, min: number, max: number) {
 
 const CELL = 16;
 
-function compile(
-  gl: WebGLRenderingContext,
-  type: number,
-  source: string,
-) {
+function compile(gl: WebGLRenderingContext, type: number, source: string) {
   const shader = gl.createShader(type);
   if (!shader) return null;
   gl.shaderSource(shader, source);
@@ -149,14 +145,7 @@ export default function ProfilePortrait() {
       imgH = img.naturalHeight;
       gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
-      gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.RGBA,
-        gl.RGBA,
-        gl.UNSIGNED_BYTE,
-        img,
-      );
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
       ready = true;
       frame.classList.add("is-gl");
       requestApply();
@@ -277,10 +266,9 @@ export default function ProfilePortrait() {
       alive = false;
       frame.classList.remove("is-gl");
       img.removeEventListener("load", upload);
-      pin.querySelector<HTMLElement>(".profile-copy")?.style.setProperty(
-        "transform",
-        "",
-      );
+      pin
+        .querySelector<HTMLElement>(".profile-copy")
+        ?.style.setProperty("transform", "");
       window.removeEventListener("scroll", requestApply);
       window.removeEventListener("resize", requestApply);
       motionQuery.removeEventListener("change", requestApply);

@@ -95,10 +95,9 @@
   grid-template-columns:
     var(--stroke, 20vh) var(--j-flex, 1fr) var(--stroke, 20vh)
     var(--stroke, 20vh) var(--stroke, 20vh) var(--l-flex, 1fr);
-  grid-template-rows: var(--stroke, 20vh) var(--mid, 1fr) var(
-      --stroke,
-      20vh
-    ) var(--stroke, 20vh);
+  grid-template-rows:
+    var(--stroke, 20vh) var(--mid, 1fr) var(--stroke, 20vh)
+    var(--stroke, 20vh);
   width: 100%;
   height: 100%;
   box-sizing: border-box;
