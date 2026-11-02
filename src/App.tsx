@@ -228,7 +228,7 @@ function App() {
           </a>
           <span className="nav-mark" aria-hidden="true" />
           <a href="#projects">
-            Projects
+            Things I've Done
             <span className="line" aria-hidden="true">
               <SynthwaveSheen className="line-sheen" />
             </span>
