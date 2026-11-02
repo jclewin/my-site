@@ -1,0 +1,29 @@
+---
+description: Folder structure for this React site
+alwaysApply: true
+---
+
+# Folder structure
+
+Single-page Vite + React + TypeScript site. Use this layout. Add a folder only when a file belongs there.
+
+```
+src/
+  assets/            imported images, fonts, icons
+  components/
+    common/          shared UI, one folder per component
+    layout/          site chrome: header, logo
+  features/          page sections: profile, skills, projects, contact
+  pages/             route-level views (Home today)
+  styles/            global CSS (globals.css, app.css)
+  App.tsx            root shell
+  main.tsx           Vite entry
+```
+
+- A new section of the page goes in `src/features/<name>/` with a PascalCase component and an `index.ts` that default-exports it.
+- Shared UI goes in `src/components/common/<Name>/<Name>.tsx` plus `index.ts`.
+- Header, footer, and nav go in `src/components/layout/<Name>/`.
+- Global CSS stays in `src/styles/`. Keep class names and import order. Do not convert styles to CSS modules as part of a move.
+- `index.html` stays at the project root. Vite serves it from there. Files referenced by URL stay in `public/`.
+- The Cloudflare Pages API stays in `functions/`. Do not move it into `src/services`.
+- Shared helpers go in `src/utils/` and shared hooks in `src/hooks/` once they exist.

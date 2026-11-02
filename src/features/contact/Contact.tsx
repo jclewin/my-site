@@ -1,5 +1,5 @@
 import { useState } from "react";
-import SynthwaveSheen from "./SynthwaveSheen";
+import SynthwaveSheen from "../../components/common/SynthwaveSheen";
 
 const INBOX = "hello@jordanlewin.ca";
 
