@@ -405,10 +405,7 @@
   }
 
   .profile-copy {
-    top: var(
-      --profile-stick,
-      calc(160px + min(280px, 100%) * 638 / 475)
-    );
+    top: var(--profile-stick, calc(160px + min(280px, 100%) * 638 / 475));
     padding-left: 0;
   }
 }
@@ -745,10 +742,24 @@
   flex-direction: column;
   height: calc(100vh - 132px);
   overflow: hidden;
+  isolation: isolate;
+  background: transparent;
+}
+
+.projects-stage::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 0;
   background: var(--bg);
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 46%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 46%);
 }
 
 .projects-intro {
+  position: relative;
+  z-index: 1;
   flex: none;
   width: 100%;
   max-width: 880px;
@@ -759,6 +770,7 @@
 
 .projects-road {
   position: relative;
+  z-index: 1;
   flex: 1;
   min-height: 280px;
   overflow: hidden;
@@ -802,7 +814,13 @@
     #000 95%,
     transparent
   );
-  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 5%,
+    #000 95%,
+    transparent
+  );
 }
 
 .project-card,
@@ -1110,6 +1128,11 @@
     top: auto;
     height: auto;
     overflow: visible;
+    background: var(--bg);
+  }
+
+  .projects-stage::before {
+    display: none;
   }
 
   .projects-road {
@@ -1187,120 +1210,33 @@
   color: #ff76ff;
 }
 
-.contact-sun {
+.contact-field {
   position: absolute;
   z-index: 0;
-  left: 50%;
-  top: 54%;
-  width: min(680px, 100vw);
-  height: min(680px, 100vw);
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background:
-    repeating-linear-gradient(
-      to bottom,
-      transparent 0 14px,
-      rgba(17, 17, 19, 0.35) 14px 16px
-    ),
-    radial-gradient(
-      circle at 50% 42%,
-      #ffd319 0 10%,
-      #ff76ff 32%,
-      #540d6e 56%,
-      transparent 68%
-    );
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    transparent 0 8%,
-    #000 22% 48%,
-    transparent 70%
-  );
-  mask-image: linear-gradient(
-    to bottom,
-    transparent 0 8%,
-    #000 22% 48%,
-    transparent 70%
-  );
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
   pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 12%);
+  mask-image: linear-gradient(to bottom, transparent, #000 12%);
 }
 
-.contact::after {
-  content: "";
-  position: absolute;
-  z-index: 0;
-  left: 6%;
-  right: 6%;
-  bottom: 41%;
-  height: 2px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 118, 255, 0.35) 14%,
-    #ff76ff 34%,
-    #2de2e6 52%,
-    #ffd319 70%,
-    transparent
-  );
-  box-shadow:
-    0 0 14px 2px rgba(45, 226, 230, 0.75),
-    0 0 32px 8px rgba(255, 118, 255, 0.45);
-  pointer-events: none;
-}
-
-.contact-grid {
-  position: absolute;
-  z-index: 0;
-  left: 50%;
-  bottom: -14%;
-  width: 170%;
-  height: 58%;
-  transform: translateX(-50%) perspective(420px) rotateX(66deg);
-  transform-origin: center top;
-  background-image:
-    linear-gradient(
-      to right,
-      rgba(255, 118, 255, 0.35) 0 2px,
-      #ff76ff 2px 3px,
-      rgba(255, 118, 255, 0.35) 3px 5px,
-      transparent 5px
-    ),
-    linear-gradient(
-      to bottom,
-      rgba(45, 226, 230, 0.28) 0 2px,
-      #2de2e6 2px 3px,
-      rgba(45, 226, 230, 0.28) 3px 5px,
-      transparent 5px
-    );
-  background-size: 72px 42px;
-  filter:
-    drop-shadow(0 0 4px rgba(45, 226, 230, 0.85))
-    drop-shadow(0 0 10px rgba(255, 118, 255, 0.55));
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 36%, transparent 86%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 36%, transparent 86%);
-  pointer-events: none;
-  animation: contact-grid-flow 9s linear infinite;
-}
-
-@keyframes contact-grid-flow {
-  from {
-    background-position: 0 0;
-  }
-
-  to {
-    background-position: 0 42px;
-  }
+.contact h2 {
+  text-shadow: 0 2px 18px rgba(17, 17, 19, 0.55);
 }
 
 .contact-card {
   position: relative;
-  margin-top: 36px;
+  margin-top: clamp(112px, 13vh, 148px);
   padding: 26px 22px 8px;
-  border: 1px solid #2e2e33;
+  border: 1px solid rgba(255, 118, 255, 0.32);
   border-radius: 16px;
-  background: #141218;
+  background: rgba(16, 14, 22, 0.94);
   box-shadow:
-    0 24px 80px rgba(0, 0, 0, 0.45),
-    0 0 0 1px rgba(255, 118, 255, 0.06);
+    0 24px 80px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(45, 226, 230, 0.14),
+    0 0 48px rgba(84, 13, 110, 0.28);
 }
 
 .contact-card label {
@@ -1550,10 +1486,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .contact-grid {
-    animation: none;
-  }
-
   .contact-send-border::before {
     animation: none;
   }

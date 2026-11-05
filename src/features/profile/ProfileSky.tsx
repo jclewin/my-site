@@ -263,7 +263,14 @@ export default function ProfileSky() {
         canvas.style.removeProperty("opacity");
       }
 
-      aim(skillsOn ? 1 : 0);
+      const pastSkills = !!skillsRect && skillsRect.bottom < mid + 24;
+      if (pastSkills && !profileOn) {
+        blend = 1;
+        blendFrom = 1;
+        blendTo = 1;
+      } else {
+        aim(skillsOn ? 1 : 0);
+      }
       if (shown || blend !== blendTo) wake();
     };
 

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import SynthwaveSheen from "../../components/common/SynthwaveSheen";
+import ContactField from "./ContactField";
 
 const INBOX = "hello@jordanlewin.ca";
 
@@ -75,8 +76,7 @@ export default function Contact() {
 
   return (
     <section id="contact" className="contact">
-      <div className="contact-sun" aria-hidden="true" />
-      <div className="contact-grid" aria-hidden="true" />
+      <ContactField />
 
       <div className="contact-stage">
         <p className="eyebrow">Contact</p>
