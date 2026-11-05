@@ -3,7 +3,7 @@ import Header from "../../components/layout/Header";
 import Logo from "../../components/layout/Logo";
 import Contact from "../../features/contact";
 import ProfilePortrait from "../../features/profile";
-import Projects from "../../features/projects";
+import Projects, { projectsEntryTop } from "../../features/projects";
 import Skills from "../../features/skills";
 
 const NAV_HEIGHT = 76;
@@ -20,6 +20,16 @@ function lerp(from: number, to: number, t: number) {
 function smoothstep(t: number) {
   const x = clamp(t, 0, 1);
   return x * x * (3 - 2 * x);
+}
+
+function documentTop(element: HTMLElement) {
+  let top = 0;
+  let node: HTMLElement | null = element;
+  while (node) {
+    top += node.offsetTop;
+    node = node.offsetParent as HTMLElement | null;
+  }
+  return top;
 }
 
 function Home() {
@@ -143,8 +153,8 @@ function Home() {
     ) {
       return;
     }
-    const copy = document.querySelector<HTMLElement>(".profile-copy");
-    if (!copy) return;
+    const hold = document.querySelector<HTMLElement>(".profile-hold");
+    if (!hold) return;
     event.preventDefault();
     const reduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
@@ -153,8 +163,7 @@ function Home() {
     const imageTop = narrow ? 132 : 148;
     const frame = document.querySelector<HTMLElement>(".profile-frame");
     const meet = narrow ? imageTop + (frame?.offsetHeight ?? 0) + 28 : imageTop;
-    const held = parseFloat(copy.style.transform.replace(/[^\d.-]/g, "")) || 0;
-    const docTop = copy.getBoundingClientRect().top - held + window.scrollY;
+    const docTop = documentTop(hold);
     history.pushState(null, "", "#profile");
     window.scrollTo({
       top: Math.max(0, Math.ceil(docTop - meet)),
@@ -196,6 +205,29 @@ function Home() {
     });
   };
 
+  const goToProjects = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+    const pin = document.querySelector<HTMLElement>(".projects-pin");
+    if (!pin) return;
+    event.preventDefault();
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    history.pushState(null, "", "#projects");
+    window.scrollTo({
+      top: Math.max(0, Math.ceil(projectsEntryTop(pin, reduced))),
+      behavior: reduced ? "auto" : "smooth",
+    });
+  };
+
   const goHome = () => {
     if (location.hash) {
       history.pushState(null, "", `${location.pathname}${location.search}`);
@@ -214,6 +246,7 @@ function Home() {
         navRef={navRef}
         onProfileClick={goToProfile}
         onSkillsClick={goToSkills}
+        onProjectsClick={goToProjects}
       />
 
       <Logo logoRef={logoRef} onHome={goHome} />
@@ -231,23 +264,27 @@ function Home() {
             <div className="profile-slot">
               <ProfilePortrait />
             </div>
-            <div className="profile-copy">
-              <p className="eyebrow">Profile</p>
-              <h2>Jordan Lewin</h2>
-              <p className="profile-role">
-                Full-stack developer and technical lead
-              </p>
-              <p className="lede">
-                Six years building microservices and internal developer portals.
-                I treat every change as part of a wider web of services, teams,
-                and workflows, and I look for the side effects before they
-                spread.
-              </p>
-              <p className="lede">
-                At TELUS I led full-stack teams shipping OpenShift applications,
-                automated workflows for more than 200 engineering teams, and
-                took features from Figma through to deployment.
-              </p>
+            <div className="profile-hold">
+              <div className="profile-copy">
+                <p className="eyebrow">Profile</p>
+                <h2>Jordan Lewin</h2>
+                <p className="profile-role">
+                  Full-stack developer and technical lead
+                </p>
+                <p className="lede">
+                  Six years building microservices and internal developer
+                  portals. I treat every change as part of a wider web of
+                  services, teams, and workflows, and I look for the side
+                  effects before they spread.
+                </p>
+                <p className="lede">
+                  At TELUS I led full-stack teams shipping OpenShift
+                  applications, automated workflows for more than 200
+                  engineering teams, and took features from Figma through to
+                  deployment.
+                </p>
+              </div>
+              <div className="profile-spacer" aria-hidden="true" />
             </div>
           </div>
         </section>

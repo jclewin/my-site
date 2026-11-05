@@ -4,12 +4,14 @@ type HeaderProps = {
   navRef: React.RefObject<HTMLElement | null>;
   onProfileClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
   onSkillsClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
+  onProjectsClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
 };
 
 export default function Header({
   navRef,
   onProfileClick,
   onSkillsClick,
+  onProjectsClick,
 }: HeaderProps) {
   return (
     <header ref={navRef} className="nav">
@@ -27,7 +29,7 @@ export default function Header({
           </span>
         </a>
         <span className="nav-mark" aria-hidden="true" />
-        <a href="#projects">
+        <a href="#projects" onClick={onProjectsClick}>
           Projects
           <span className="line" aria-hidden="true">
             <SynthwaveSheen className="line-sheen" />

@@ -62,6 +62,16 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
+function documentTop(element: HTMLElement) {
+  let top = 0;
+  let node: HTMLElement | null = element;
+  while (node) {
+    top += node.offsetTop;
+    node = node.offsetParent as HTMLElement | null;
+  }
+  return top;
+}
+
 const CELL = 16;
 
 function compile(gl: WebGLRenderingContext, type: number, source: string) {
@@ -151,79 +161,87 @@ export default function ProfilePortrait() {
       requestApply();
     };
 
+    const hold = pin.querySelector<HTMLElement>(".profile-hold");
+    const skills = document.getElementById("skills");
+    let holdDoc = 0;
+    let pinDoc = 0;
+    let skillsDoc = Number.POSITIVE_INFINITY;
+    let frameHeight = 0;
+    let meet = 148;
+
     const resize = () => {
-      const rect = canvas.getBoundingClientRect();
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const nextW = Math.max(1, Math.round(rect.width * dpr));
-      const nextH = Math.max(1, Math.round(rect.height * dpr));
+      const nextW = Math.max(1, Math.round(frame.clientWidth * dpr));
+      const nextH = Math.max(1, Math.round(frame.clientHeight * dpr));
       if (canvas.width !== nextW || canvas.height !== nextH) {
         canvas.width = nextW;
         canvas.height = nextH;
       }
     };
 
-    const place = () => {
+    const measure = () => {
+      const viewH = window.innerHeight;
+      const imageTop = narrowQuery.matches ? 132 : 148;
+      frameHeight = frame.offsetHeight;
+      meet = narrowQuery.matches ? imageTop + frameHeight + 28 : imageTop;
+      const holdPx = Math.round(viewH * 0.52);
+      const stickValue = `${meet}px`;
+      const holdValue = `${holdPx}px`;
+      if (pin.style.getPropertyValue("--profile-stick") !== stickValue) {
+        pin.style.setProperty("--profile-stick", stickValue);
+      }
+      if (pin.style.getPropertyValue("--profile-hold") !== holdValue) {
+        pin.style.setProperty("--profile-hold", holdValue);
+      }
+      holdDoc = hold ? documentTop(hold) : 0;
+      pinDoc = documentTop(pin);
+      skillsDoc = skills ? documentTop(skills) : Number.POSITIVE_INFINITY;
+      resize();
+
       const slot = frame.parentElement;
       if (!slot || motionQuery.matches) {
         frame.style.left = "";
         frame.style.visibility = "";
         return;
       }
-      const slotRect = slot.getBoundingClientRect();
-      const pinRect = pin.getBoundingClientRect();
-      const skills = document.getElementById("skills");
-      const skillsTop = skills?.getBoundingClientRect().top ?? Infinity;
-      const imageTop = narrowQuery.matches ? 132 : 148;
-      const imageBottom = imageTop + frame.offsetHeight;
-      const covered = skillsTop < imageBottom - 24;
-      const upcoming = pinRect.top > window.innerHeight + 40;
-      frame.style.left = `${slotRect.left}px`;
-      frame.style.visibility = covered || upcoming ? "hidden" : "visible";
+      const left = `${Math.round(slot.getBoundingClientRect().left)}px`;
+      if (frame.style.left !== left) frame.style.left = left;
     };
 
-    let held = 0;
+    const updateVisibility = () => {
+      if (motionQuery.matches) return;
+      const imageTop = narrowQuery.matches ? 132 : 148;
+      const skillsTop = skillsDoc - window.scrollY;
+      const pinTop = pinDoc - window.scrollY;
+      const covered = skillsTop < imageTop + frameHeight - 24;
+      const upcoming = pinTop > window.innerHeight + 40;
+      const visibility = covered || upcoming ? "hidden" : "visible";
+      if (frame.style.visibility !== visibility) frame.style.visibility = visibility;
+    };
 
     const portraitState = () => {
-      const copy = pin.querySelector<HTMLElement>(".profile-copy");
-      if (motionQuery.matches || !copy) {
-        held = 0;
-        if (copy) copy.style.transform = "";
-        return { fill: 1, focus: 1 };
-      }
+      if (motionQuery.matches || !hold) return { fill: 1, focus: 1 };
       const viewH = window.innerHeight;
-      const imageTop = narrowQuery.matches ? 132 : 148;
-      const meet = narrowQuery.matches
-        ? imageTop + frame.offsetHeight + 28
-        : imageTop;
-      const layoutTop = copy.getBoundingClientRect().top - held;
+      const layoutTop = holdDoc - window.scrollY;
       // Same timing as the nav's bottom border in App: it finishes
       // 120px after max(viewH * 0.65, 280). Pixels begin a little after that.
       const borderIn = Math.max(viewH * 0.65, 280) + 120 + viewH * 0.08;
-      const start = Math.max(meet + 160, layoutTop + window.scrollY - borderIn);
+      const start = Math.max(meet + 160, holdDoc - borderIn);
       if (layoutTop > meet) {
-        held = 0;
-        copy.style.transform = "";
         const t = clamp((start - layoutTop) / Math.max(1, start - meet), 0, 1);
         if (t < 0.58) return { fill: t / 0.58, focus: 0 };
         return { fill: 1, focus: (t - 0.58) / 0.42 };
       }
       const past = meet - layoutTop;
-      const hold = viewH * 0.52;
-      if (past < hold) {
-        held = past;
-        copy.style.transform = `translateY(${held}px)`;
-        return { fill: 1, focus: 1 };
-      }
-      held = hold;
-      copy.style.transform = `translateY(${held}px)`;
-      const leave = clamp((past - hold) / (viewH * 0.5), 0, 1);
+      const holdDistance = Math.round(viewH * 0.52);
+      if (past < holdDistance) return { fill: 1, focus: 1 };
+      const leave = clamp((past - holdDistance) / (viewH * 0.5), 0, 1);
       if (leave < 0.42) return { fill: 1, focus: 1 - leave / 0.42 };
       return { fill: 1 - (leave - 0.42) / 0.58, focus: 0 };
     };
 
     const draw = () => {
-      place();
-      resize();
+      updateVisibility();
       gl.viewport(0, 0, canvas.width, canvas.height);
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
@@ -254,25 +272,38 @@ export default function ProfilePortrait() {
       });
     };
 
+    const onLayout = () => {
+      measure();
+      requestApply();
+    };
+
+    const observer = new ResizeObserver(onLayout);
+    observer.observe(pin);
+    if (hold) observer.observe(hold);
+    if (skills) observer.observe(skills);
+    if (frame.parentElement) observer.observe(frame.parentElement);
+
     if (img.complete) upload();
     img.addEventListener("load", upload);
-    requestApply();
+    onLayout();
     window.addEventListener("scroll", requestApply, { passive: true });
-    window.addEventListener("resize", requestApply);
-    motionQuery.addEventListener("change", requestApply);
-    narrowQuery.addEventListener("change", requestApply);
+    window.addEventListener("resize", onLayout);
+    motionQuery.addEventListener("change", onLayout);
+    narrowQuery.addEventListener("change", onLayout);
 
     return () => {
       alive = false;
       frame.classList.remove("is-gl");
       img.removeEventListener("load", upload);
-      pin
-        .querySelector<HTMLElement>(".profile-copy")
-        ?.style.setProperty("transform", "");
+      observer.disconnect();
+      pin.style.removeProperty("--profile-stick");
+      pin.style.removeProperty("--profile-hold");
+      frame.style.left = "";
+      frame.style.visibility = "";
       window.removeEventListener("scroll", requestApply);
-      window.removeEventListener("resize", requestApply);
-      motionQuery.removeEventListener("change", requestApply);
-      narrowQuery.removeEventListener("change", requestApply);
+      window.removeEventListener("resize", onLayout);
+      motionQuery.removeEventListener("change", onLayout);
+      narrowQuery.removeEventListener("change", onLayout);
       if (tick) cancelAnimationFrame(tick);
       gl.deleteTexture(texture);
       gl.deleteBuffer(buffer);
