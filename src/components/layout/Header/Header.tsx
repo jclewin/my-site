@@ -17,28 +17,36 @@ export default function Header({
     <header ref={navRef} className="nav">
       <div className="nav-plate">
         <a href="#profile" onClick={onProfileClick}>
-          Profile
-          <span className="line" aria-hidden="true">
-            <SynthwaveSheen className="line-sheen" />
+          <span className="nav-label">
+            Profile
+            <span className="line" aria-hidden="true">
+              <SynthwaveSheen className="line-sheen" />
+            </span>
           </span>
         </a>
         <a href="#skills" onClick={onSkillsClick}>
-          Skills
-          <span className="line" aria-hidden="true">
-            <SynthwaveSheen className="line-sheen" />
+          <span className="nav-label">
+            Skills
+            <span className="line" aria-hidden="true">
+              <SynthwaveSheen className="line-sheen" />
+            </span>
           </span>
         </a>
         <span className="nav-mark" aria-hidden="true" />
         <a href="#projects" onClick={onProjectsClick}>
-          Projects
-          <span className="line" aria-hidden="true">
-            <SynthwaveSheen className="line-sheen" />
+          <span className="nav-label">
+            Projects
+            <span className="line" aria-hidden="true">
+              <SynthwaveSheen className="line-sheen" />
+            </span>
           </span>
         </a>
         <a href="#contact">
-          Contact
-          <span className="line" aria-hidden="true">
-            <SynthwaveSheen className="line-sheen" />
+          <span className="nav-label">
+            Contact
+            <span className="line" aria-hidden="true">
+              <SynthwaveSheen className="line-sheen" />
+            </span>
           </span>
         </a>
       </div>

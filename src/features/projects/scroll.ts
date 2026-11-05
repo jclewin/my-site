@@ -42,7 +42,7 @@ export function projectShift(
     const t = smoothstep((progress - (holdStart - slide)) / slide);
     return dock * t;
   }
-  if (progress > holdEnd) {
+  if (progress > holdEnd && index < n - 1) {
     const t = smoothstep((progress - holdEnd) / slide);
     return dock + (1 - dock) * t;
   }

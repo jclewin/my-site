@@ -58,10 +58,15 @@
   padding: 10px 0 12px;
 }
 
+.nav-label {
+  position: relative;
+  display: inline-block;
+}
+
 .line {
   position: absolute;
   left: 50%;
-  bottom: 4px;
+  bottom: -8px;
   height: 4px;
   width: 0;
   overflow: hidden;
@@ -928,7 +933,14 @@
   width: min(560px, 78vw);
   margin: 0;
   padding: 0;
-  will-change: transform;
+}
+
+.projects-lane.is-scroll-pass .project-card {
+  animation-duration: auto;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-timeline: scroll(root block);
+  animation-range: var(--pass-start) var(--pass-end);
 }
 
 .project-card.is-icon {
@@ -1694,5 +1706,12 @@
 
   .contact a:hover {
     color: #2de2e6;
+  }
+}
+
+@media (max-width: 760px) {
+  .nav a[aria-current="page"] .line,
+  .nav a:active .line {
+    width: 100%;
   }
 }

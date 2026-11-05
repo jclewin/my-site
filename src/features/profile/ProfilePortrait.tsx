@@ -48,7 +48,7 @@ void main() {
 
   vec2 uv = clamp((vUv - 0.5) * uCover + 0.5, 0.001, 0.999);
   if (uFocus > 0.92) {
-    gl_FragColor = vec4(texture2D(uImage, uv).rgb, 1.0);
+    gl_FragColor = texture2D(uImage, uv);
     return;
   }
 
@@ -62,7 +62,12 @@ void main() {
 
   vec2 center = (origin + id * cell + 0.5) / uResolution;
   vec2 sampleUv = clamp((center - 0.5) * uCover + 0.5, 0.001, 0.999);
-  gl_FragColor = vec4(texture2D(uImage, sampleUv).rgb, 1.0);
+  vec4 tex = texture2D(uImage, sampleUv);
+  if (tex.a < 0.5) {
+    gl_FragColor = vec4(0.0);
+    return;
+  }
+  gl_FragColor = vec4(tex.rgb, 1.0);
 }
 `;
 
@@ -319,7 +324,7 @@ export default function ProfilePortrait() {
     <div ref={frameRef} className="profile-frame">
       <img
         ref={imgRef}
-        src="/profile.png"
+        src="/profile-transparent.png"
         alt="Illustrated portrait"
         draggable={false}
       />

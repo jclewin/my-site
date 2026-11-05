@@ -9,6 +9,7 @@ import {
 } from "../../utils/viewport";
 import {
   PROJECTS_SETTLE,
+  PROJECTS_SLIDE,
   projectShift,
   projectsCover,
   stuckTop,
@@ -76,6 +77,41 @@ function dockLocal(width: number, viewW: number, focusRatio: number) {
   const start = -width - 40;
   const end = viewW + 40;
   return (viewW * focusRatio - width / 2 - start) / Math.max(1, end - start);
+}
+
+const scrollPass = CSS.supports("animation-timeline", "scroll()");
+
+function passFrames(index: number, count: number, width: number, viewW: number) {
+  const n = Math.max(1, count);
+  const slide = Math.min(PROJECTS_SLIDE, 0.5 / (n + 1));
+  const hold = (1 - (n + 1) * slide) / n;
+  const marks = new Set<number>([0, 1]);
+  for (let i = 0; i < n; i++) {
+    const holdStart = slide + i * (hold + slide);
+    const holdEnd = holdStart + hold;
+    for (let step = 0; step <= 4; step++) {
+      marks.add(holdStart - slide + (slide * step) / 4);
+      marks.add(holdEnd + (slide * step) / 4);
+    }
+  }
+
+  const frames: Array<{ pct: number; x: number }> = [];
+  for (const progress of [...marks].sort((a, b) => a - b)) {
+    const t = clamp(progress, 0, 1);
+    const pct = Math.round(t * 10000) / 100;
+    const local = projectShift(t, index, count, dockLocal(width, viewW, 0.5));
+    const x = Math.round(lerp(-width - 40, viewW + 40, local));
+    const prev = frames[frames.length - 1];
+    if (prev && prev.pct === pct) {
+      prev.x = x;
+      continue;
+    }
+    frames.push({ pct, x });
+  }
+
+  return frames
+    .map((frame) => `${frame.pct}%{transform:translate3d(${frame.x}px,-50%,0)}`)
+    .join("");
 }
 
 function hostLabel(href: string) {
@@ -162,10 +198,12 @@ export default function Projects() {
     const road = roadRef.current;
     if (!pin || !road) return;
 
-    let frame = 0;
     let lastKey = "";
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const stage = pin.querySelector<HTMLElement>(".projects-stage");
+    const lane = pin.querySelector<HTMLElement>(".projects-lane");
+    const passStyle = scrollPass ? document.createElement("style") : null;
+    if (passStyle) document.head.appendChild(passStyle);
     let pinDoc = 0;
     let stageDoc = 0;
     let pinHeight = 1;
@@ -187,10 +225,32 @@ export default function Projects() {
       viewW = road.clientWidth;
       widths = cards.map((card) => card.offsetWidth);
       lastKey = "";
+
+      if (!passStyle || !lane || motion.matches || viewW < 1 || !widths.length) {
+        lane?.classList.remove("is-scroll-pass");
+        lane?.style.removeProperty("--pass-start");
+        lane?.style.removeProperty("--pass-end");
+        return;
+      }
+
+      const release = Math.max(1, pinHeight - stageHeight);
+      const travel = Math.max(1, release - viewH * PROJECTS_SETTLE);
+      const passStart = Math.max(0, Math.round(pinDoc - sticky));
+      lane.style.setProperty("--pass-start", `${passStart}px`);
+      lane.style.setProperty("--pass-end", `${Math.round(passStart + travel)}px`);
+      lane.classList.add("is-scroll-pass");
+      passStyle.textContent = widths
+        .map((width, index) => {
+          const frames = passFrames(index, widths.length, width, viewW);
+          return `@keyframes project-pass-${index}{${frames}}.projects-lane.is-scroll-pass .project-card:nth-child(${index + 1}){animation-name:project-pass-${index}}`;
+        })
+        .join("");
+      cards.forEach((card) => {
+        card.style.transform = "";
+      });
     };
 
     const apply = () => {
-      frame = 0;
       const cards = cardRefs.current.filter(
         (card): card is HTMLLIElement => card !== null,
       );
@@ -248,7 +308,9 @@ export default function Projects() {
           dockLocal(width, viewW, focusRatio),
         );
         const x = Math.round(lerp(-width - 40, viewW + 40, local));
-        card.style.transform = `translate3d(${x}px, -50%, 0)`;
+        if (!lane?.classList.contains("is-scroll-pass")) {
+          card.style.transform = `translate3d(${x}px, -50%, 0)`;
+        }
         const center = x + width / 2;
         const onStage = center > 24 && center < viewW - 24;
         card.style.pointerEvents = onStage ? "auto" : "none";
@@ -267,34 +329,30 @@ export default function Projects() {
       });
     };
 
-    const requestApply = () => {
-      if (frame) return;
-      frame = requestAnimationFrame(apply);
-    };
-
     const onResize = () => {
       syncViewport();
       measure();
-      requestApply();
+      apply();
     };
 
     const onMotion = () => {
       lastKey = "";
       measure();
-      requestApply();
+      apply();
     };
 
     measure();
     apply();
-    window.addEventListener("scroll", requestApply, { passive: true });
+    window.addEventListener("scroll", apply, { passive: true });
     window.addEventListener("resize", onResize);
     motion.addEventListener("change", onMotion);
 
     return () => {
-      window.removeEventListener("scroll", requestApply);
+      window.removeEventListener("scroll", apply);
       window.removeEventListener("resize", onResize);
       motion.removeEventListener("change", onMotion);
-      if (frame) cancelAnimationFrame(frame);
+      lane?.classList.remove("is-scroll-pass");
+      passStyle?.remove();
     };
   }, []);
 
