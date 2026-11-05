@@ -1,4 +1,12 @@
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
+import {
+  documentTop,
+  isStacked,
+  pixelRatio,
+  readChrome,
+  stableViewport,
+  syncViewport,
+} from "../../utils/viewport";
 
 const VERTEX = `
 attribute vec2 aPosition;
@@ -62,16 +70,6 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
-function documentTop(element: HTMLElement) {
-  let top = 0;
-  let node: HTMLElement | null = element;
-  while (node) {
-    top += node.offsetTop;
-    node = node.offsetParent as HTMLElement | null;
-  }
-  return top;
-}
-
 const CELL = 16;
 
 function compile(gl: WebGLRenderingContext, type: number, source: string) {
@@ -89,7 +87,7 @@ export default function ProfilePortrait() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const frame = frameRef.current;
     const canvas = canvasRef.current;
     const img = imgRef.current;
@@ -142,8 +140,8 @@ export default function ProfilePortrait() {
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
     const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const narrowQuery = window.matchMedia("(max-width: 760px)");
     let alive = true;
+    let drawnKey = "";
     let tick = 0;
     let ready = false;
     let imgW = 1;
@@ -170,20 +168,23 @@ export default function ProfilePortrait() {
     let meet = 148;
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = pixelRatio("portrait");
       const nextW = Math.max(1, Math.round(frame.clientWidth * dpr));
       const nextH = Math.max(1, Math.round(frame.clientHeight * dpr));
       if (canvas.width !== nextW || canvas.height !== nextH) {
         canvas.width = nextW;
         canvas.height = nextH;
       }
+      drawnKey = "";
     };
 
     const measure = () => {
-      const viewH = window.innerHeight;
-      const imageTop = narrowQuery.matches ? 132 : 148;
+      syncViewport();
+      const { height: viewH } = stableViewport();
+      const imageTop = readChrome().frameTop;
+      const stacked = isStacked();
       frameHeight = frame.offsetHeight;
-      meet = narrowQuery.matches ? imageTop + frameHeight + 28 : imageTop;
+      meet = stacked ? imageTop + frameHeight + 28 : imageTop;
       const holdPx = Math.round(viewH * 0.52);
       const stickValue = `${meet}px`;
       const holdValue = `${holdPx}px`;
@@ -210,18 +211,18 @@ export default function ProfilePortrait() {
 
     const updateVisibility = () => {
       if (motionQuery.matches) return;
-      const imageTop = narrowQuery.matches ? 132 : 148;
+      const imageTop = readChrome().frameTop;
       const skillsTop = skillsDoc - window.scrollY;
       const pinTop = pinDoc - window.scrollY;
       const covered = skillsTop < imageTop + frameHeight - 24;
-      const upcoming = pinTop > window.innerHeight + 40;
+      const upcoming = pinTop > stableViewport().height + 40;
       const visibility = covered || upcoming ? "hidden" : "visible";
       if (frame.style.visibility !== visibility) frame.style.visibility = visibility;
     };
 
     const portraitState = () => {
       if (motionQuery.matches || !hold) return { fill: 1, focus: 1 };
-      const viewH = window.innerHeight;
+      const viewH = stableViewport().height;
       const layoutTop = holdDoc - window.scrollY;
       // Same timing as the nav's bottom border in App: it finishes
       // 120px after max(viewH * 0.65, 280). Pixels begin a little after that.
@@ -242,12 +243,15 @@ export default function ProfilePortrait() {
 
     const draw = () => {
       updateVisibility();
+      const hidden = frame.style.visibility === "hidden";
+      const state = hidden || !ready ? null : portraitState();
+      const key = `${hidden}:${ready}:${state ? state.fill.toFixed(3) : 0}:${state ? state.focus.toFixed(3) : 0}:${canvas.width}x${canvas.height}`;
+      if (key === drawnKey) return;
+      drawnKey = key;
       gl.viewport(0, 0, canvas.width, canvas.height);
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
-      if (!ready || frame.style.visibility === "hidden") return;
-
-      const state = portraitState();
+      if (!state) return;
       const viewAspect = canvas.width / Math.max(1, canvas.height);
       const imgAspect = imgW / imgH;
       const cover =
@@ -289,7 +293,6 @@ export default function ProfilePortrait() {
     window.addEventListener("scroll", requestApply, { passive: true });
     window.addEventListener("resize", onLayout);
     motionQuery.addEventListener("change", onLayout);
-    narrowQuery.addEventListener("change", onLayout);
 
     return () => {
       alive = false;
@@ -303,7 +306,6 @@ export default function ProfilePortrait() {
       window.removeEventListener("scroll", requestApply);
       window.removeEventListener("resize", onLayout);
       motionQuery.removeEventListener("change", onLayout);
-      narrowQuery.removeEventListener("change", onLayout);
       if (tick) cancelAnimationFrame(tick);
       gl.deleteTexture(texture);
       gl.deleteBuffer(buffer);

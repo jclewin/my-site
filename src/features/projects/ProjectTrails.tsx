@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { pixelRatio } from "../../utils/viewport";
 
 type RGB = readonly [number, number, number];
 
@@ -147,7 +148,7 @@ export default function ProjectTrails() {
       const cssHeight = parent.clientHeight;
       if (cssWidth < 2 || cssHeight < 2) return;
 
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      const dpr = pixelRatio("canvas");
       const width = Math.max(1, Math.round(cssWidth * dpr));
       const height = Math.max(1, Math.round(cssHeight * dpr));
       if (canvas.width !== width || canvas.height !== height) {

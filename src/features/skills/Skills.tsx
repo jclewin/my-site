@@ -1,4 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
+import {
+  documentTop,
+  isStacked,
+  readChrome,
+  stableViewport,
+  syncViewport,
+} from "../../utils/viewport";
 
 type Skill = {
   name: string;
@@ -156,7 +163,7 @@ function startXFor(
   left: number,
   cardLeft: number,
 ) {
-  const span = Math.max(64, cardLeft - left - 18);
+  const span = Math.max(20, cardLeft - left - 12);
   const step = span / Math.max(1, count - 1);
   return left + (count - 1 - index) * step;
 }
@@ -197,7 +204,7 @@ export default function Skills() {
     prefersReducedMotion() ? STACK.length : 0,
   );
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const pin = pinRef.current;
     const stage = stageRef.current;
     const me = meRef.current;
@@ -208,103 +215,113 @@ export default function Skills() {
 
     let frame = 0;
     let shown = prefersReducedMotion() ? STACK.length : -1;
+    let lastKey = "";
     const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let pinDoc = 0;
+    let travel = 1;
+    let originX = 0;
+    let originY = 0;
+    let overflow = 0;
+    let traces: Array<{
+      startX: number;
+      endX: number;
+      endY: number;
+      length: number;
+      top: number;
+    }> = [];
 
-    const apply = () => {
-      frame = 0;
+    const measure = () => {
+      syncViewport();
       const groups = groupRefs.current.filter(
         (group): group is HTMLDivElement => group !== null,
       );
       const paths = pathRefs.current.filter(
         (path): path is SVGPathElement => path !== null,
       );
-      if (!groups.length || paths.length !== groups.length) return;
-      if (board.clientWidth < 1) return;
+      if (!groups.length || paths.length !== groups.length) return false;
+      if (board.clientWidth < 1) return false;
+
+      const { height: viewH } = stableViewport();
+      const sticky = readChrome().sticky;
+      const releaseTravel = Math.max(1, pin.offsetHeight - (viewH - sticky));
+      pinDoc = documentTop(pin);
+      travel = Math.max(1, releaseTravel - viewH * 0.35);
+      originX = me.offsetLeft;
+      originY = me.offsetTop + me.offsetHeight + 8;
+      const groupsX = board.offsetLeft + groupsEl.offsetLeft;
+      const groupsY = board.offsetTop + groupsEl.offsetTop;
+      const cardLeft = groupsX + groups[0].offsetLeft;
+      traces = groups.map((group, index) => {
+        const startX = startXFor(index, groups.length, originX, cardLeft);
+        const endX = groupsX + group.offsetLeft;
+        const endY = groupsY + group.offsetTop + group.offsetHeight / 2;
+        return {
+          startX,
+          endX,
+          endY,
+          length: Math.max(1, Math.abs(endY - originY) + Math.abs(endX - startX)),
+          top: group.offsetTop,
+        };
+      });
+      overflow = Math.max(0, groupsEl.scrollHeight - board.clientHeight);
+      lastKey = "";
+      return true;
+    };
+
+    const apply = () => {
+      frame = 0;
+      // A phone is too short for the sticky trace. Show the list in place.
+      if (isStacked()) {
+        if (groupsEl.style.transform) groupsEl.style.transform = "";
+        if (shown !== STACK.length) {
+          shown = STACK.length;
+          setRevealedCount(STACK.length);
+        }
+        return;
+      }
+      const paths = pathRefs.current.filter(
+        (path): path is SVGPathElement => path !== null,
+      );
+      if (!traces.length || paths.length !== traces.length) return;
 
       const reduced = motionQuery.matches;
-      let progress = 1;
-      if (!reduced) {
-        const stickyTop = 132;
-        const releaseTravel = Math.max(
-          1,
-          pin.offsetHeight - (window.innerHeight - stickyTop),
-        );
-        const settle = window.innerHeight * 0.35;
-        const travel = Math.max(1, releaseTravel - settle);
-        progress = clamp(
-          (stickyTop - pin.getBoundingClientRect().top) / travel,
-          0,
-          1,
-        );
-      }
-
-      const originX = me.offsetLeft;
-      const originY = me.offsetTop + me.offsetHeight + 8;
-      const stageRect = stage.getBoundingClientRect();
-      const naturalCardLeft =
-        board.offsetLeft + groupsEl.offsetLeft + groups[0].offsetLeft;
-      const natural = groups.map((group, index) => {
-        const startX = startXFor(
-          index,
-          groups.length,
-          originX,
-          naturalCardLeft,
-        );
-        const endX = board.offsetLeft + groupsEl.offsetLeft + group.offsetLeft;
-        const endY =
-          board.offsetTop +
-          groupsEl.offsetTop +
-          group.offsetTop +
-          group.offsetHeight / 2;
-        return trace(startX, originY, endX, endY);
-      });
-      const lengths = natural.map((d, index) => {
-        paths[index].setAttribute("d", d);
-        return Math.max(1, paths[index].getTotalLength());
-      });
-      const drawn = progress * Math.max(...lengths);
+      const sticky = readChrome().sticky;
+      const progress = reduced
+        ? 1
+        : clamp((sticky - (pinDoc - window.scrollY)) / travel, 0, 1);
+      const drawn = progress * Math.max(...traces.map((item) => item.length));
       let complete = 0;
-      lengths.forEach((length) => {
-        if (drawn / length >= 0.995) complete += 1;
+      traces.forEach((item) => {
+        if (drawn / item.length >= 0.995) complete += 1;
       });
 
-      const overflow = Math.max(0, groupsEl.scrollHeight - board.clientHeight);
+      let shift = 0;
       if (!reduced && overflow > 0) {
-        const focus = groups[Math.max(0, complete - 1)];
-        const shift = clamp(8 - focus.offsetTop, -overflow, 0);
-        groupsEl.style.transform = `translate3d(0, ${shift}px, 0)`;
-      } else {
-        groupsEl.style.transform = "translate3d(0, 0, 0)";
+        shift = clamp(8 - traces[Math.max(0, complete - 1)].top, -overflow, 0);
       }
+      const key = `${progress.toFixed(4)}:${shift}`;
+      if (key === lastKey) return;
+      lastKey = key;
 
+      groupsEl.style.transform = `translate3d(0, ${shift}px, 0)`;
       complete = 0;
-      const meRect = me.getBoundingClientRect();
-      const visualOriginX = meRect.left - stageRect.left;
-      const visualOriginY = meRect.bottom - stageRect.top + 8;
-      const visualCardLeft =
-        groups[0].getBoundingClientRect().left - stageRect.left;
-      groups.forEach((group, index) => {
-        const rect = group.getBoundingClientRect();
-        const startX = startXFor(
-          index,
-          groups.length,
-          visualOriginX,
-          visualCardLeft,
+      traces.forEach((item, index) => {
+        const endY = item.endY + shift;
+        const length = Math.max(
+          1,
+          Math.abs(endY - originY) + Math.abs(item.endX - item.startX),
         );
-        const endX = rect.left - stageRect.left;
-        const endY = rect.top + rect.height / 2 - stageRect.top;
         const path = paths[index];
-        path.setAttribute("d", trace(startX, visualOriginY, endX, endY));
-        const visualLength = Math.max(1, path.getTotalLength());
-        const fraction = reduced ? 1 : Math.min(1, drawn / lengths[index]);
-        path.style.strokeDasharray = `${visualLength}`;
-        path.style.strokeDashoffset = `${visualLength * (1 - fraction)}`;
+        path.setAttribute("d", trace(item.startX, originY, item.endX, endY));
+        const fraction = reduced ? 1 : Math.min(1, drawn / item.length);
+        path.style.strokeDasharray = `${length}`;
+        path.style.strokeDashoffset = `${length * (1 - fraction)}`;
         if (fraction >= 0.995) complete += 1;
       });
 
-      gradient.setAttribute("x1", String(visualOriginX));
-      gradient.setAttribute("x2", String(visualOriginX));
-      gradient.setAttribute("y1", String(visualOriginY));
+      gradient.setAttribute("x1", String(originX));
+      gradient.setAttribute("x2", String(originX));
+      gradient.setAttribute("y1", String(originY));
       gradient.setAttribute("y2", String(stage.clientHeight));
 
       if (complete !== shown) {
@@ -318,15 +335,28 @@ export default function Skills() {
       frame = requestAnimationFrame(apply);
     };
 
-    apply();
+    const onResize = () => {
+      syncViewport();
+      if (measure()) requestApply();
+    };
+
+    const onMotion = () => {
+      lastKey = "";
+      if (measure()) requestApply();
+    };
+
+    if (measure()) apply();
     window.addEventListener("scroll", requestApply, { passive: true });
-    window.addEventListener("resize", requestApply);
-    motionQuery.addEventListener("change", requestApply);
+    window.addEventListener("resize", onResize);
+    motionQuery.addEventListener("change", onMotion);
+    const observer = new ResizeObserver(onResize);
+    observer.observe(stage);
 
     return () => {
+      observer.disconnect();
       window.removeEventListener("scroll", requestApply);
-      window.removeEventListener("resize", requestApply);
-      motionQuery.removeEventListener("change", requestApply);
+      window.removeEventListener("resize", onResize);
+      motionQuery.removeEventListener("change", onMotion);
       if (frame) cancelAnimationFrame(frame);
     };
   }, []);

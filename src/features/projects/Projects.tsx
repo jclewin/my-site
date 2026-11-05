@@ -2,10 +2,16 @@ import { useLayoutEffect, useRef } from "react";
 import SynthwaveSheen from "../../components/common/SynthwaveSheen";
 import ProjectTrails from "./ProjectTrails";
 import {
+  documentTop,
+  readChrome,
+  stableViewport,
+  syncViewport,
+} from "../../utils/viewport";
+import {
   PROJECTS_SETTLE,
-  PROJECTS_STICKY,
   projectShift,
   projectsCover,
+  stuckTop,
 } from "./scroll";
 
 type MarkName = "portal" | "cluster";
@@ -157,31 +163,48 @@ export default function Projects() {
     if (!pin || !road) return;
 
     let frame = 0;
+    let lastKey = "";
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const stage = pin.querySelector<HTMLElement>(".projects-stage");
+    let pinDoc = 0;
+    let stageDoc = 0;
+    let pinHeight = 1;
+    let stageHeight = 1;
+    let viewW = 1;
+    let widths: number[] = [];
 
-    const apply = () => {
-      frame = 0;
-      const stage = pin.querySelector<HTMLElement>(".projects-stage");
-      if (stage) {
-        if (motion.matches) {
-          stage.style.opacity = "";
-          stage.style.pointerEvents = "";
-        } else {
-          const cover = projectsCover(
-            stage.getBoundingClientRect().top,
-            window.innerHeight,
-          );
-          stage.style.opacity = cover.toFixed(3);
-          stage.style.pointerEvents = cover < 0.15 ? "none" : "";
-        }
-      }
-
+    const measure = () => {
+      syncViewport();
       const cards = cardRefs.current.filter(
         (card): card is HTMLLIElement => card !== null,
       );
-      if (!cards.length || road.clientWidth < 1) return;
+      pinDoc = documentTop(pin);
+      stageDoc = stage ? documentTop(stage) : pinDoc;
+      pinHeight = pin.offsetHeight;
+      const { height: viewH } = stableViewport();
+      const sticky = readChrome().sticky;
+      stageHeight = Math.max(1, viewH - sticky);
+      viewW = road.clientWidth;
+      widths = cards.map((card) => card.offsetWidth);
+      lastKey = "";
+    };
 
+    const apply = () => {
+      frame = 0;
+      const cards = cardRefs.current.filter(
+        (card): card is HTMLLIElement => card !== null,
+      );
+      if (!cards.length || viewW < 1 || widths.length !== cards.length) return;
+
+      const { height: viewH } = stableViewport();
+      const sticky = readChrome().sticky;
       if (motion.matches) {
+        if (lastKey === "reduced") return;
+        lastKey = "reduced";
+        if (stage) {
+          stage.style.opacity = "";
+          stage.style.pointerEvents = "";
+        }
         cards.forEach((card) => {
           card.style.transform = "";
           card.style.pointerEvents = "";
@@ -192,27 +215,32 @@ export default function Projects() {
         return;
       }
 
-      const release = Math.max(
-        1,
-        pin.offsetHeight - (window.innerHeight - PROJECTS_STICKY),
-      );
-      const travel = Math.max(
-        1,
-        release - window.innerHeight * PROJECTS_SETTLE,
-      );
-      const progress = clamp(
-        (PROJECTS_STICKY - pin.getBoundingClientRect().top) / travel,
-        0,
-        1,
-      );
-      const viewW = road.clientWidth;
+      const pinTop = pinDoc - window.scrollY;
+      const release = Math.max(1, pinHeight - stageHeight);
+      const travel = Math.max(1, release - viewH * PROJECTS_SETTLE);
+      const progress = clamp((sticky - pinTop) / travel, 0, 1);
+      const cover = stage
+        ? projectsCover(
+            stuckTop(stageDoc - window.scrollY, pinTop, pinHeight, stageHeight, sticky),
+            viewH,
+          )
+        : 1;
+      const key = `${progress.toFixed(4)}:${cover.toFixed(3)}:${viewW}`;
+      if (key === lastKey) return;
+      lastKey = key;
+
+      if (stage) {
+        stage.style.opacity = cover.toFixed(3);
+        stage.style.pointerEvents = cover < 0.15 ? "none" : "";
+      }
+
       const focusRatio = 0.5;
       const focus = viewW * focusRatio;
       let hot = -1;
       let hotDist = Infinity;
 
       cards.forEach((card, index) => {
-        const width = card.offsetWidth;
+        const width = widths[index];
         const local = projectShift(
           progress,
           index,
@@ -244,15 +272,28 @@ export default function Projects() {
       frame = requestAnimationFrame(apply);
     };
 
+    const onResize = () => {
+      syncViewport();
+      measure();
+      requestApply();
+    };
+
+    const onMotion = () => {
+      lastKey = "";
+      measure();
+      requestApply();
+    };
+
+    measure();
     apply();
     window.addEventListener("scroll", requestApply, { passive: true });
-    window.addEventListener("resize", requestApply);
-    motion.addEventListener("change", requestApply);
+    window.addEventListener("resize", onResize);
+    motion.addEventListener("change", onMotion);
 
     return () => {
       window.removeEventListener("scroll", requestApply);
-      window.removeEventListener("resize", requestApply);
-      motion.removeEventListener("change", requestApply);
+      window.removeEventListener("resize", onResize);
+      motion.removeEventListener("change", onMotion);
       if (frame) cancelAnimationFrame(frame);
     };
   }, []);

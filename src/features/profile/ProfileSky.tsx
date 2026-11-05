@@ -1,5 +1,12 @@
 import { useEffect, useRef } from "react";
-import { projectsCover } from "../projects/scroll";
+import { projectsCover, stuckTop } from "../projects/scroll";
+import {
+  documentTop,
+  pixelRatio,
+  readChrome,
+  stableViewport,
+  syncViewport,
+} from "../../utils/viewport";
 
 const YELLOW = "#ffd319";
 const PINK = "#ff76ff";
@@ -43,9 +50,10 @@ export default function ProfileSky() {
     if (!ctx) return;
 
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const narrow = window.matchMedia("(max-width: 760px)");
     const skills = document.getElementById("skills");
     const projects = document.getElementById("projects");
+    const stage = projects?.querySelector<HTMLElement>(".projects-stage") ?? null;
+    const pin = stage?.parentElement ?? null;
     const started = performance.now();
     const anchor = { x: 0, y: 0, radius: 1 };
     let frame = 0;
@@ -57,9 +65,10 @@ export default function ProfileSky() {
     let blendStart = 0;
 
     const place = () => {
+      syncViewport();
       const portrait = parent.querySelector<HTMLElement>(".profile-frame");
-      const top = narrow.matches ? 132 : 148;
-      const width = portrait?.offsetWidth || window.innerWidth * 0.28;
+      const top = readChrome().frameTop;
+      const width = portrait?.offsetWidth || stableViewport().width * 0.28;
       const height = portrait?.offsetHeight || width * (638 / 475);
       const left = portrait?.style.left
         ? parseFloat(portrait.style.left)
@@ -77,7 +86,7 @@ export default function ProfileSky() {
       const cssHeight = canvas.clientHeight;
       if (cssWidth < 2 || cssHeight < 2) return;
 
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      const dpr = pixelRatio("canvas");
       const width = Math.max(1, Math.round(cssWidth * dpr));
       const height = Math.max(1, Math.round(cssHeight * dpr));
       if (canvas.width !== width || canvas.height !== height) {
@@ -223,20 +232,48 @@ export default function ProfileSky() {
     };
 
     let handoffClear = 0;
+    let profileDoc = 0;
+    let profileHeight = 0;
+    let skillsDoc = 0;
+    let skillsHeight = 0;
+    let stageDoc = 0;
+    let pinDoc = 0;
+    let pinHeight = 0;
+    let stageHeight = 1;
+
+    const measureScene = () => {
+      syncViewport();
+      const { height: viewH } = stableViewport();
+      const sticky = readChrome().sticky;
+      profileDoc = documentTop(parent);
+      profileHeight = parent.offsetHeight;
+      skillsDoc = skills ? documentTop(skills) : 0;
+      skillsHeight = skills?.offsetHeight ?? 0;
+      stageDoc = stage ? documentTop(stage) : 0;
+      pinDoc = pin ? documentTop(pin) : stageDoc;
+      pinHeight = pin?.offsetHeight ?? 0;
+      stageHeight = Math.max(1, viewH - sticky);
+    };
 
     const updatePresence = () => {
-      const viewH = window.innerHeight;
+      const { height: viewH } = stableViewport();
+      const sticky = readChrome().sticky;
       const mid = viewH * 0.5;
-      const profileRect = parent.getBoundingClientRect();
-      const skillsRect = skills?.getBoundingClientRect();
-      const stage = projects?.querySelector(".projects-stage");
-      const stageTop = stage?.getBoundingClientRect().top ?? viewH + 1;
+      const scrollY = window.scrollY;
+      const profileTop = profileDoc - scrollY;
+      const profileBottom = profileTop + profileHeight;
+      const skillsTop = skills ? skillsDoc - scrollY : viewH + 1;
+      const skillsBottom = skillsTop + skillsHeight;
+      const pinTop = pinDoc - scrollY;
+      const stageTop = stage
+        ? stuckTop(stageDoc - scrollY, pinTop, pinHeight, stageHeight, sticky)
+        : viewH + 1;
       const cover = !stage || motion.matches ? 0 : projectsCover(stageTop, viewH);
-      const skillsOn = !!skillsRect && skillsRect.top < mid - 24 && skillsRect.bottom > mid + 24;
-      const profileOn = profileRect.top < mid - 24 && profileRect.bottom > mid + 24;
+      const skillsOn = !!skills && skillsTop < mid - 24 && skillsBottom > mid + 24;
+      const profileOn = profileTop < mid - 24 && profileBottom > mid + 24;
       const near =
-        (!!skillsRect && skillsRect.bottom > 0 && skillsRect.top < viewH) ||
-        (profileRect.bottom > 0 && profileRect.top < viewH);
+        (!!skills && skillsBottom > 0 && skillsTop < viewH) ||
+        (profileBottom > 0 && profileTop < viewH);
 
       if (cover > 0.001) {
         if (handoffClear) cancelAnimationFrame(handoffClear);
@@ -252,8 +289,18 @@ export default function ProfileSky() {
         if (handoffClear) cancelAnimationFrame(handoffClear);
         handoffClear = requestAnimationFrame(() => {
           handoffClear = 0;
-          const top = projects?.querySelector(".projects-stage")?.getBoundingClientRect().top ?? viewH + 1;
-          if (projectsCover(top, window.innerHeight) > 0.001) return;
+          const { height: viewHNow } = stableViewport();
+          const stickyNow = readChrome().sticky;
+          const top = stage
+            ? stuckTop(
+                stageDoc - window.scrollY,
+                pinDoc - window.scrollY,
+                pinHeight,
+                stageHeight,
+                stickyNow,
+              )
+            : viewHNow + 1;
+          if (projectsCover(top, viewHNow) > 0.001) return;
           canvas.classList.remove("is-handoff");
           canvas.style.removeProperty("opacity");
         });
@@ -263,7 +310,7 @@ export default function ProfileSky() {
         canvas.style.removeProperty("opacity");
       }
 
-      const pastSkills = !!skillsRect && skillsRect.bottom < mid + 24;
+      const pastSkills = !!skills && skillsBottom < mid + 24;
       if (pastSkills && !profileOn) {
         blend = 1;
         blendFrom = 1;
@@ -275,8 +322,10 @@ export default function ProfileSky() {
     };
 
     const paint = () => {
+      measureScene();
       place();
       draw(motion.matches ? 1.2 : (performance.now() - started) / 1000);
+      updatePresence();
       wake();
     };
 
@@ -301,7 +350,7 @@ export default function ProfileSky() {
     };
 
     motion.addEventListener("change", onMotion);
-    narrow.addEventListener("change", paint);
+    window.addEventListener("resize", paint);
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("scroll", updatePresence, { passive: true });
     paint();
@@ -312,7 +361,7 @@ export default function ProfileSky() {
       if (frame) cancelAnimationFrame(frame);
       resizeObserver.disconnect();
       motion.removeEventListener("change", onMotion);
-      narrow.removeEventListener("change", paint);
+      window.removeEventListener("resize", paint);
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("scroll", updatePresence);
       if (handoffClear) cancelAnimationFrame(handoffClear);

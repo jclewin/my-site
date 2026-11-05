@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { pixelRatio } from "../../utils/viewport";
 
 const COLS = 8;
 const ROWS = 26;
@@ -252,7 +253,7 @@ export default function ContactField() {
       const cssHeight = parent.clientHeight;
       if (cssWidth < 2 || cssHeight < 2) return false;
 
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      const dpr = pixelRatio("canvas");
       width = Math.max(1, Math.round(cssWidth * dpr));
       height = Math.max(1, Math.round(cssHeight * dpr));
       if (canvas.width !== width || canvas.height !== height) {

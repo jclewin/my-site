@@ -11,11 +11,24 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   --scroll: 0;
+  --vh: 1vh;
+  --nav-h: 76px;
+  --sticky: 132px;
+  --frame-top: 148px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
 }
 
 html {
   scroll-behavior: smooth;
   overflow-x: clip;
+  scroll-padding-top: var(--sticky);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 body {
@@ -26,7 +39,7 @@ body {
 
 #root {
   width: 100%;
-  min-height: 100vh;
+  min-height: calc(var(--vh) * 100);
 }
 
 @media (prefers-reduced-motion: reduce) {

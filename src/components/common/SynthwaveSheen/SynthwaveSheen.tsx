@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { pixelRatio } from "../../../utils/viewport";
 
 const VERTEX = `
 attribute vec2 aPosition;
@@ -81,6 +82,240 @@ function compile(gl: WebGLRenderingContext, type: number, source: string) {
   return null;
 }
 
+function reducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function mountRibbon(canvas: HTMLCanvasElement) {
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return () => {};
+
+  const reduced = reducedMotion();
+  let alive = true;
+  let visible = true;
+  let running = false;
+  let dirty = true;
+  let frame = 0;
+  let width = 1;
+  let height = 1;
+
+  const measure = () => {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = pixelRatio("canvas");
+    width = Math.max(1, rect.width);
+    height = Math.max(1, rect.height);
+    const nextW = Math.max(1, Math.round(width * dpr));
+    const nextH = Math.max(1, Math.round(height * dpr));
+    if (canvas.width !== nextW || canvas.height !== nextH) {
+      canvas.width = nextW;
+      canvas.height = nextH;
+    }
+    return width > 2 && height > 0;
+  };
+
+  const draw = (now: number) => {
+    const w = canvas.width;
+    const h = canvas.height;
+    const shift = reduced ? 0 : ((now * 0.04) % (w * 2)) - w;
+    const gradient = ctx.createLinearGradient(shift, 0, shift + w * 2, 0);
+    gradient.addColorStop(0, "#ffd319");
+    gradient.addColorStop(0.2, "#2de2e6");
+    gradient.addColorStop(0.4, "#ff76ff");
+    gradient.addColorStop(0.62, "#540d6e");
+    gradient.addColorStop(0.82, "#2de2e6");
+    gradient.addColorStop(1, "#ffd319");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, w, h);
+  };
+
+  const tick = (now: number) => {
+    if (!alive) return;
+    if (!visible) {
+      running = false;
+      return;
+    }
+    if (dirty) {
+      dirty = false;
+      if (!measure()) {
+        running = false;
+        return;
+      }
+    }
+    if (width <= 2) {
+      running = false;
+      return;
+    }
+    draw(now);
+    frame = requestAnimationFrame(tick);
+  };
+
+  const wake = () => {
+    if (!running && alive && visible && !reduced) {
+      running = true;
+      frame = requestAnimationFrame(tick);
+    }
+  };
+
+  const resizeObserver = new ResizeObserver(() => {
+    dirty = true;
+    wake();
+  });
+  resizeObserver.observe(canvas);
+  const intersection = new IntersectionObserver((entries) => {
+    visible = entries.some((entry) => entry.isIntersecting);
+    if (visible) wake();
+  });
+  intersection.observe(canvas);
+  if (measure()) draw(0);
+  wake();
+
+  return () => {
+    alive = false;
+    cancelAnimationFrame(frame);
+    resizeObserver.disconnect();
+    intersection.disconnect();
+  };
+}
+
+function mountField(canvas: HTMLCanvasElement) {
+  const gl = canvas.getContext("webgl", {
+    alpha: false,
+    antialias: false,
+    premultipliedAlpha: false,
+  });
+  if (!gl) return () => {};
+
+  const vertex = compile(gl, gl.VERTEX_SHADER, VERTEX);
+  const fragment = compile(gl, gl.FRAGMENT_SHADER, FRAGMENT);
+  const program = gl.createProgram();
+  if (!vertex || !fragment || !program) return () => {};
+
+  gl.attachShader(program, vertex);
+  gl.attachShader(program, fragment);
+  gl.linkProgram(program);
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) return () => {};
+
+  gl.useProgram(program);
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array([-1, -1, 3, -1, -1, 3]),
+    gl.STATIC_DRAW,
+  );
+  const position = gl.getAttribLocation(program, "aPosition");
+  gl.enableVertexAttribArray(position);
+  gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+
+  const origin = gl.getUniformLocation(program, "uOrigin");
+  const size = gl.getUniformLocation(program, "uSize");
+  const viewport = gl.getUniformLocation(program, "uViewport");
+  const time = gl.getUniformLocation(program, "uTime");
+  const mouse = gl.getUniformLocation(program, "uMouse");
+  const pointer = { x: 0.5, y: 0.5 };
+  const reduced = reducedMotion();
+  let originX = 0;
+  let originY = 0;
+  let width = 1;
+  let height = 1;
+  let frame = 0;
+  let alive = true;
+  let visible = true;
+  let running = false;
+  let dirty = true;
+
+  const measure = () => {
+    const rect = canvas.getBoundingClientRect();
+    const area = rect.width * rect.height;
+    const dpr = area > 160000 ? pixelRatio("hero") : pixelRatio("canvas");
+    width = Math.max(1, rect.width);
+    height = Math.max(1, rect.height);
+    originX = rect.left;
+    originY = rect.top;
+    const nextW = Math.max(1, Math.round(width * dpr));
+    const nextH = Math.max(1, Math.round(height * dpr));
+    if (canvas.width !== nextW || canvas.height !== nextH) {
+      canvas.width = nextW;
+      canvas.height = nextH;
+    }
+    dirty = false;
+    return area > 4;
+  };
+
+  const draw = (now: number) => {
+    if (dirty) measure();
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.uniform2f(origin, originX, originY);
+    gl.uniform2f(size, width, height);
+    gl.uniform2f(viewport, window.innerWidth, window.innerHeight);
+    gl.uniform1f(time, reduced ? 0 : now * 0.001);
+    gl.uniform2f(mouse, pointer.x, pointer.y);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  };
+
+  const tick = (now: number) => {
+    if (!alive) return;
+    if (!visible) {
+      running = false;
+      return;
+    }
+    draw(now);
+    frame = requestAnimationFrame(tick);
+  };
+
+  const wake = () => {
+    if (!running && alive && visible && !reduced) {
+      running = true;
+      frame = requestAnimationFrame(tick);
+    }
+  };
+
+  const mark = () => {
+    if (!visible) return;
+    dirty = true;
+  };
+
+  const onPointer = (event: PointerEvent) => {
+    pointer.x = event.clientX / Math.max(1, window.innerWidth);
+    pointer.y = 1 - event.clientY / Math.max(1, window.innerHeight);
+  };
+
+  const resizeObserver = new ResizeObserver(() => {
+    dirty = true;
+    if (visible) wake();
+  });
+  resizeObserver.observe(canvas);
+  const intersection = new IntersectionObserver((entries) => {
+    visible = entries.some((entry) => entry.isIntersecting);
+    if (visible) {
+      dirty = true;
+      wake();
+    }
+  });
+  intersection.observe(canvas);
+  window.addEventListener("scroll", mark, { passive: true });
+  window.addEventListener("resize", mark);
+  window.addEventListener("pointermove", onPointer, { passive: true });
+
+  measure();
+  draw(0);
+  wake();
+
+  return () => {
+    alive = false;
+    cancelAnimationFrame(frame);
+    resizeObserver.disconnect();
+    intersection.disconnect();
+    window.removeEventListener("scroll", mark);
+    window.removeEventListener("resize", mark);
+    window.removeEventListener("pointermove", onPointer);
+    gl.deleteBuffer(buffer);
+    gl.deleteProgram(program);
+    gl.deleteShader(vertex);
+    gl.deleteShader(fragment);
+  };
+}
+
 export default function SynthwaveSheen({
   className = "logo-sheen",
 }: {
@@ -92,103 +327,8 @@ export default function SynthwaveSheen({
     const canvas = canvasRef.current;
     const parent = canvas?.parentElement;
     if (!canvas || !parent) return;
-
-    const gl = canvas.getContext("webgl", {
-      alpha: false,
-      antialias: false,
-      premultipliedAlpha: false,
-    });
-    if (!gl) return;
-
-    const vertex = compile(gl, gl.VERTEX_SHADER, VERTEX);
-    const fragment = compile(gl, gl.FRAGMENT_SHADER, FRAGMENT);
-    const program = gl.createProgram();
-    if (!vertex || !fragment || !program) return;
-
-    gl.attachShader(program, vertex);
-    gl.attachShader(program, fragment);
-    gl.linkProgram(program);
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) return;
-
-    gl.useProgram(program);
-    const buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array([-1, -1, 3, -1, -1, 3]),
-      gl.STATIC_DRAW,
-    );
-    const position = gl.getAttribLocation(program, "aPosition");
-    gl.enableVertexAttribArray(position);
-    gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
-
-    const origin = gl.getUniformLocation(program, "uOrigin");
-    const size = gl.getUniformLocation(program, "uSize");
-    const viewport = gl.getUniformLocation(program, "uViewport");
-    const time = gl.getUniformLocation(program, "uTime");
-    const mouse = gl.getUniformLocation(program, "uMouse");
-    const pointer = { x: 0.5, y: 0.5 };
-    let originX = 0;
-    let originY = 0;
-    const reduced = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    let width = 1;
-    let height = 1;
-    let frame = 0;
-    let alive = true;
-
-    const resize = () => {
-      const rect = canvas.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      width = Math.max(1, rect.width);
-      height = Math.max(1, rect.height);
-      originX = rect.left;
-      originY = rect.top;
-      const nextW = Math.max(1, Math.round(width * dpr));
-      const nextH = Math.max(1, Math.round(height * dpr));
-      if (canvas.width !== nextW || canvas.height !== nextH) {
-        canvas.width = nextW;
-        canvas.height = nextH;
-      }
-    };
-
-    const draw = (now: number) => {
-      gl.viewport(0, 0, canvas.width, canvas.height);
-      gl.uniform2f(origin, originX, originY);
-      gl.uniform2f(size, width, height);
-      gl.uniform2f(viewport, window.innerWidth, window.innerHeight);
-      gl.uniform1f(time, reduced ? 0 : now * 0.001);
-      gl.uniform2f(mouse, pointer.x, pointer.y);
-      gl.drawArrays(gl.TRIANGLES, 0, 3);
-    };
-
-    const tick = (now: number) => {
-      if (!alive) return;
-      resize();
-      draw(now);
-      frame = requestAnimationFrame(tick);
-    };
-
-    const onPointer = (event: PointerEvent) => {
-      pointer.x = event.clientX / Math.max(1, window.innerWidth);
-      pointer.y = 1 - event.clientY / Math.max(1, window.innerHeight);
-    };
-
-    resize();
-    draw(0);
-    if (!reduced) frame = requestAnimationFrame(tick);
-    window.addEventListener("pointermove", onPointer, { passive: true });
-
-    return () => {
-      alive = false;
-      cancelAnimationFrame(frame);
-      window.removeEventListener("pointermove", onPointer);
-      gl.deleteBuffer(buffer);
-      gl.deleteProgram(program);
-      gl.deleteShader(vertex);
-      gl.deleteShader(fragment);
-    };
+    const ribbon = parent.getBoundingClientRect().height <= 8;
+    return ribbon ? mountRibbon(canvas) : mountField(canvas);
   }, []);
 
   return <canvas ref={canvasRef} className={className} aria-hidden="true" />;

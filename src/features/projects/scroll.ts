@@ -1,7 +1,21 @@
-export const PROJECTS_STICKY = 132;
+import { readChrome, stableViewport } from "../../utils/viewport";
+
 export const PROJECTS_SETTLE = 0.22;
 export const PROJECTS_SLIDE = 0.04;
 export const PROJECTS_LEAD = PROJECTS_SLIDE;
+
+/** Visual top of a sticky stage, without reading layout during scroll. */
+export function stuckTop(
+  naturalTop: number,
+  parentTop: number,
+  parentHeight: number,
+  size: number,
+  stick: number,
+) {
+  const release = parentTop + parentHeight - size;
+  if (naturalTop > stick) return naturalTop;
+  return Math.min(stick, release);
+}
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -43,13 +57,11 @@ export function projectsCover(stageTop: number, viewHeight: number) {
 }
 
 export function projectsEntryTop(pin: HTMLElement, reduced: boolean) {
-  const top =
-    pin.getBoundingClientRect().top + window.scrollY - PROJECTS_STICKY;
+  const sticky = readChrome().sticky;
+  const viewH = stableViewport().height;
+  const top = pin.getBoundingClientRect().top + window.scrollY - sticky;
   if (reduced) return Math.max(0, top);
-  const release = Math.max(
-    1,
-    pin.offsetHeight - (window.innerHeight - PROJECTS_STICKY),
-  );
-  const travel = Math.max(1, release - window.innerHeight * PROJECTS_SETTLE);
+  const release = Math.max(1, pin.offsetHeight - (viewH - sticky));
+  const travel = Math.max(1, release - viewH * PROJECTS_SETTLE);
   return Math.max(0, top + travel * PROJECTS_LEAD);
 }
