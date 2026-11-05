@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 
 const COLS = 8;
-const ROWS = 18;
+const ROWS = 26;
 const SPEED = 1.45;
 
 function hash(n: number) {
@@ -154,6 +154,11 @@ function paintHorizon(
   ctx.stroke();
 }
 
+function smoothstep(t: number) {
+  const x = Math.min(1, Math.max(0, t));
+  return x * x * (3 - 2 * x);
+}
+
 function paintGrid(
   ctx: CanvasRenderingContext2D,
   width: number,
@@ -162,7 +167,7 @@ function paintGrid(
   time: number,
   scale: number,
 ) {
-  const depth = height - horizonY;
+  const depth = Math.max(1, height - horizonY);
   const offset = (time * SPEED) % 1;
   ctx.lineCap = "butt";
 
@@ -178,22 +183,31 @@ function paintGrid(
     ctx.stroke();
   }
 
-  ctx.strokeStyle = "rgba(255, 211, 25, 0.7)";
+  const spine = ctx.createLinearGradient(width * 0.5, horizonY, width * 0.5, height);
+  spine.addColorStop(0, "rgba(255, 211, 25, 0)");
+  spine.addColorStop(0.18, "rgba(255, 211, 25, 0.75)");
+  spine.addColorStop(0.72, "rgba(255, 211, 25, 0.75)");
+  spine.addColorStop(1, "rgba(255, 211, 25, 0)");
+  ctx.strokeStyle = spine;
   ctx.lineWidth = Math.max(1.2, 1.5 * scale);
   ctx.beginPath();
-  ctx.moveTo(width * 0.5, horizonY + 1);
+  ctx.moveTo(width * 0.5, horizonY);
   ctx.lineTo(width * 0.5, height);
   ctx.stroke();
 
+  const overrun = 20 * scale;
+  ctx.lineWidth = Math.max(1.75, 2 * scale);
   for (let row = 0; row < ROWS; row += 1) {
     const z = (row + offset) / ROWS;
     const p = z ** 1.75;
-    const y = horizonY + p * (depth + 24 * scale);
-    if (y <= horizonY + 1 || y > height + 8) continue;
-    const alpha = Math.min(0.92, p * p * 1.05);
-    const half = width * (0.02 + p * 1.2);
+    const y = horizonY + p * (depth + overrun);
+    if (y <= horizonY || y >= height + overrun) continue;
+    const along = (y - horizonY) / depth;
+    const appear = smoothstep(Math.min(1, along / 0.05));
+    if (appear < 0.01) continue;
+    const alpha = (0.22 + 0.7 * Math.min(1, along)) * appear;
+    const half = width * 1.22 * Math.min(along, 1.05);
     ctx.strokeStyle = `rgba(45, 226, 230, ${alpha})`;
-    ctx.lineWidth = Math.max(1, (0.7 + p * 2.4) * scale);
     ctx.beginPath();
     ctx.moveTo(width * 0.5 - half, y);
     ctx.lineTo(width * 0.5 + half, y);
@@ -217,30 +231,49 @@ export default function ContactField() {
     let frame = 0;
     let alive = true;
     let visible = true;
+    let width = 0;
+    let height = 0;
+    let scale = 1;
+    let horizonY = 0;
+    let sunRadius = 0;
 
-    const draw = (time: number) => {
+    const offsetWithin = (el: HTMLElement) => {
+      let y = 0;
+      let node: HTMLElement | null = el;
+      while (node && node !== parent) {
+        y += node.offsetTop;
+        node = node.offsetParent as HTMLElement | null;
+      }
+      return node === parent ? y : el.offsetTop;
+    };
+
+    const measure = () => {
       const cssWidth = parent.clientWidth;
       const cssHeight = parent.clientHeight;
-      if (cssWidth < 2 || cssHeight < 2) return;
+      if (cssWidth < 2 || cssHeight < 2) return false;
 
       const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-      const width = Math.max(1, Math.round(cssWidth * dpr));
-      const height = Math.max(1, Math.round(cssHeight * dpr));
+      width = Math.max(1, Math.round(cssWidth * dpr));
+      height = Math.max(1, Math.round(cssHeight * dpr));
       if (canvas.width !== width || canvas.height !== height) {
         canvas.width = width;
         canvas.height = height;
       }
 
-      const scale = width / cssWidth;
-      const lede = parent.querySelector(".lede");
-      const parentTop = parent.getBoundingClientRect().top;
+      scale = width / cssWidth;
+      const lede = parent.querySelector<HTMLElement>(".lede");
       const ledeBottom = lede
-        ? lede.getBoundingClientRect().bottom - parentTop
+        ? offsetWithin(lede) + lede.offsetHeight
         : cssHeight * 0.28;
       const sunTop = ledeBottom + 12;
       const sunRadiusCss = Math.min(cssWidth * 0.28, cssHeight * 0.34);
-      const horizonY = (sunTop + sunRadiusCss) * scale;
-      const sunRadius = sunRadiusCss * scale;
+      horizonY = (sunTop + sunRadiusCss) * scale;
+      sunRadius = sunRadiusCss * scale;
+      return true;
+    };
+
+    const draw = (time: number) => {
+      if (width < 2 || height < 2) return;
 
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, width, height);
@@ -269,6 +302,7 @@ export default function ContactField() {
     };
 
     const resize = () => {
+      if (!measure()) return;
       draw(motion.matches ? 0.4 : (performance.now() - started) / 1000);
       wake();
     };
@@ -289,6 +323,8 @@ export default function ContactField() {
 
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(parent);
+    const lede = parent.querySelector(".lede");
+    if (lede) resizeObserver.observe(lede);
     const intersection = new IntersectionObserver((entries) => {
       visible = entries.some((entry) => entry.isIntersecting);
       if (visible) wake();
