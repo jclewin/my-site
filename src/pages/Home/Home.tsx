@@ -3,6 +3,7 @@ import Header from "../../components/layout/Header";
 import Logo from "../../components/layout/Logo";
 import Contact from "../../features/contact";
 import ProfilePortrait from "../../features/profile";
+import ProfileSky from "../../features/profile/ProfileSky";
 import Projects, { projectsEntryTop } from "../../features/projects";
 import Skills from "../../features/skills";
 
@@ -260,6 +261,7 @@ function Home() {
         <div className="hero" id="home" />
 
         <section id="profile" className="profile-pin">
+          <ProfileSky />
           <div className="profile-stage">
             <div className="profile-slot">
               <ProfilePortrait />

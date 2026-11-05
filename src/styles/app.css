@@ -228,11 +228,34 @@
 }
 
 .profile-pin {
+  position: relative;
   scroll-margin-top: 112px;
+}
+
+.profile-sky {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.15s ease;
+}
+
+.profile-sky.is-in {
+  opacity: 1;
+}
+
+.profile-sky.is-handoff {
+  transition: none;
 }
 
 .profile-stage {
   position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: start;
@@ -273,6 +296,7 @@
 .profile-copy {
   position: sticky;
   top: var(--profile-stick, 148px);
+  padding-left: clamp(56px, 6vw, 112px);
 }
 
 .profile-frame img,
@@ -328,6 +352,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .profile-sky {
+    transition: none;
+  }
+
   .profile-stage {
     min-height: calc(100vh - 76px);
     padding-top: 156px;
@@ -381,6 +409,7 @@
       --profile-stick,
       calc(160px + min(280px, 100%) * 638 / 475)
     );
+    padding-left: 0;
   }
 }
 
@@ -453,11 +482,13 @@
 }
 
 .skills-pin {
+  position: relative;
   height: 235vh;
 }
 
 .skills-stage {
   position: sticky;
+  z-index: 1;
   top: 132px;
   display: flex;
   flex-direction: column;
@@ -477,7 +508,6 @@
 
 .skills-intro {
   text-align: left;
-  background: var(--bg);
 }
 
 .skills-board {
@@ -734,7 +764,7 @@
   overflow: hidden;
 }
 
-.projects-fibers {
+.projects-trails {
   position: absolute;
   z-index: 0;
   inset: 0;
@@ -1194,22 +1224,71 @@
   pointer-events: none;
 }
 
+.contact::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  left: 6%;
+  right: 6%;
+  bottom: 41%;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 118, 255, 0.35) 14%,
+    #ff76ff 34%,
+    #2de2e6 52%,
+    #ffd319 70%,
+    transparent
+  );
+  box-shadow:
+    0 0 14px 2px rgba(45, 226, 230, 0.75),
+    0 0 32px 8px rgba(255, 118, 255, 0.45);
+  pointer-events: none;
+}
+
 .contact-grid {
   position: absolute;
   z-index: 0;
   left: 50%;
-  bottom: -8%;
-  width: 160%;
-  height: 48%;
-  transform: translateX(-50%) perspective(420px) rotateX(64deg);
+  bottom: -14%;
+  width: 170%;
+  height: 58%;
+  transform: translateX(-50%) perspective(420px) rotateX(66deg);
   transform-origin: center top;
   background-image:
-    linear-gradient(to right, rgba(255, 118, 255, 0.38) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(45, 226, 230, 0.32) 1px, transparent 1px);
+    linear-gradient(
+      to right,
+      rgba(255, 118, 255, 0.35) 0 2px,
+      #ff76ff 2px 3px,
+      rgba(255, 118, 255, 0.35) 3px 5px,
+      transparent 5px
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(45, 226, 230, 0.28) 0 2px,
+      #2de2e6 2px 3px,
+      rgba(45, 226, 230, 0.28) 3px 5px,
+      transparent 5px
+    );
   background-size: 72px 42px;
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 78%);
-  mask-image: linear-gradient(to bottom, #000 0%, transparent 78%);
+  filter:
+    drop-shadow(0 0 4px rgba(45, 226, 230, 0.85))
+    drop-shadow(0 0 10px rgba(255, 118, 255, 0.55));
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 36%, transparent 86%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 36%, transparent 86%);
   pointer-events: none;
+  animation: contact-grid-flow 9s linear infinite;
+}
+
+@keyframes contact-grid-flow {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 0 42px;
+  }
 }
 
 .contact-card {
@@ -1471,6 +1550,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .contact-grid {
+    animation: none;
+  }
+
   .contact-send-border::before {
     animation: none;
   }

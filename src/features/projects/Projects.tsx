@@ -1,7 +1,12 @@
 import { useLayoutEffect, useRef } from "react";
 import SynthwaveSheen from "../../components/common/SynthwaveSheen";
-import ProjectFibers from "./ProjectFibers";
-import { PROJECTS_SETTLE, PROJECTS_STICKY, projectShift } from "./scroll";
+import ProjectTrails from "./ProjectTrails";
+import {
+  PROJECTS_SETTLE,
+  PROJECTS_STICKY,
+  projectShift,
+  projectsCover,
+} from "./scroll";
 
 type MarkName = "portal" | "cluster";
 
@@ -156,6 +161,21 @@ export default function Projects() {
 
     const apply = () => {
       frame = 0;
+      const stage = pin.querySelector<HTMLElement>(".projects-stage");
+      if (stage) {
+        if (motion.matches) {
+          stage.style.opacity = "";
+          stage.style.pointerEvents = "";
+        } else {
+          const cover = projectsCover(
+            stage.getBoundingClientRect().top,
+            window.innerHeight,
+          );
+          stage.style.opacity = cover.toFixed(3);
+          stage.style.pointerEvents = cover < 0.15 ? "none" : "";
+        }
+      }
+
       const cards = cardRefs.current.filter(
         (card): card is HTMLLIElement => card !== null,
       );
@@ -251,7 +271,7 @@ export default function Projects() {
             <p className="lede">Professional work, and a personal project.</p>
           </div>
           <div className="projects-road" ref={roadRef}>
-            <ProjectFibers />
+            <ProjectTrails />
             <ol className="projects-lane">
               {PROJECTS.map((project, index) => (
                 <li

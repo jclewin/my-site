@@ -35,6 +35,13 @@ export function projectShift(
   return dock;
 }
 
+/** How fully the projects stage has covered the viewport. 0 below, 1 once settled. */
+export function projectsCover(stageTop: number, viewHeight: number) {
+  const start = viewHeight * 0.78;
+  const end = Math.min(viewHeight * 0.36, 300);
+  return smoothstep((start - stageTop) / Math.max(1, start - end));
+}
+
 export function projectsEntryTop(pin: HTMLElement, reduced: boolean) {
   const top =
     pin.getBoundingClientRect().top + window.scrollY - PROJECTS_STICKY;
