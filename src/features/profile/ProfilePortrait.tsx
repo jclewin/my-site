@@ -171,6 +171,7 @@ export default function ProfilePortrait() {
     let skillsDoc = Number.POSITIVE_INFINITY;
     let frameHeight = 0;
     let meet = 148;
+    let placedTop = 0;
 
     const resize = () => {
       const dpr = pixelRatio("portrait");
@@ -185,10 +186,27 @@ export default function ProfilePortrait() {
 
     const measure = () => {
       syncViewport();
-      const { height: viewH } = stableViewport();
-      const imageTop = readChrome().frameTop;
+      const { height: viewH, width: viewW } = stableViewport();
+      const chrome = readChrome();
       const stacked = isStacked();
       frameHeight = frame.offsetHeight;
+      // On a phone the sunset is held below the nav, which leaves the
+      // face high in the circle. Drop the portrait toward that center,
+      // then hold it a little above the middle.
+      // Keep in step with ProfileSky: NAV_CLEAR 96, radius 0.78, anchor 0.42.
+      const mobileLift = 28;
+      let imageTop = chrome.frameTop;
+      if (viewW <= 760 && !motionQuery.matches) {
+        const radius = frame.offsetWidth * 0.78;
+        const base = chrome.frameTop - chrome.faceDrop;
+        const circleCenter =
+          Math.max(base + frameHeight * 0.42, 96 + radius) + chrome.faceDrop;
+        const nudge = Math.round(
+          circleCenter - (chrome.frameTop + frameHeight * 0.42),
+        );
+        if (nudge > 0) imageTop += Math.max(0, nudge - mobileLift);
+      }
+      placedTop = imageTop;
       meet = stacked ? imageTop + frameHeight + 28 : imageTop;
       const holdPx = Math.round(viewH * 0.52);
       const stickValue = `${meet}px`;
@@ -207,22 +225,26 @@ export default function ProfilePortrait() {
       const slot = frame.parentElement;
       if (!slot || motionQuery.matches) {
         frame.style.left = "";
+        frame.style.top = "";
         frame.style.visibility = "";
         return;
       }
       const left = `${Math.round(slot.getBoundingClientRect().left)}px`;
       if (frame.style.left !== left) frame.style.left = left;
+      const top = viewW <= 760 ? `${imageTop}px` : "";
+      if (frame.style.top !== top) frame.style.top = top;
     };
 
     const updateVisibility = () => {
       if (motionQuery.matches) return;
-      const imageTop = readChrome().frameTop;
+      const imageTop = placedTop || readChrome().frameTop;
       const skillsTop = skillsDoc - window.scrollY;
       const pinTop = pinDoc - window.scrollY;
       const covered = skillsTop < imageTop + frameHeight - 24;
       const upcoming = pinTop > stableViewport().height + 40;
       const visibility = covered || upcoming ? "hidden" : "visible";
-      if (frame.style.visibility !== visibility) frame.style.visibility = visibility;
+      if (frame.style.visibility !== visibility)
+        frame.style.visibility = visibility;
     };
 
     const portraitState = () => {
@@ -307,6 +329,7 @@ export default function ProfilePortrait() {
       pin.style.removeProperty("--profile-stick");
       pin.style.removeProperty("--profile-hold");
       frame.style.left = "";
+      frame.style.top = "";
       frame.style.visibility = "";
       window.removeEventListener("scroll", requestApply);
       window.removeEventListener("resize", onLayout);

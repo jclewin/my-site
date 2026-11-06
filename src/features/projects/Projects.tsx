@@ -81,7 +81,12 @@ function dockLocal(width: number, viewW: number, focusRatio: number) {
 
 const scrollPass = CSS.supports("animation-timeline", "scroll()");
 
-function passFrames(index: number, count: number, width: number, viewW: number) {
+function passFrames(
+  index: number,
+  count: number,
+  width: number,
+  viewW: number,
+) {
   const n = Math.max(1, count);
   const slide = Math.min(PROJECTS_SLIDE, 0.5 / (n + 1));
   const hold = (1 - (n + 1) * slide) / n;
@@ -226,7 +231,13 @@ export default function Projects() {
       widths = cards.map((card) => card.offsetWidth);
       lastKey = "";
 
-      if (!passStyle || !lane || motion.matches || viewW < 1 || !widths.length) {
+      if (
+        !passStyle ||
+        !lane ||
+        motion.matches ||
+        viewW < 1 ||
+        !widths.length
+      ) {
         lane?.classList.remove("is-scroll-pass");
         lane?.style.removeProperty("--pass-start");
         lane?.style.removeProperty("--pass-end");
@@ -237,7 +248,10 @@ export default function Projects() {
       const travel = Math.max(1, release - viewH * PROJECTS_SETTLE);
       const passStart = Math.max(0, Math.round(pinDoc - sticky));
       lane.style.setProperty("--pass-start", `${passStart}px`);
-      lane.style.setProperty("--pass-end", `${Math.round(passStart + travel)}px`);
+      lane.style.setProperty(
+        "--pass-end",
+        `${Math.round(passStart + travel)}px`,
+      );
       lane.classList.add("is-scroll-pass");
       passStyle.textContent = widths
         .map((width, index) => {
@@ -281,7 +295,13 @@ export default function Projects() {
       const progress = clamp((sticky - pinTop) / travel, 0, 1);
       const cover = stage
         ? projectsCover(
-            stuckTop(stageDoc - window.scrollY, pinTop, pinHeight, stageHeight, sticky),
+            stuckTop(
+              stageDoc - window.scrollY,
+              pinTop,
+              pinHeight,
+              stageHeight,
+              sticky,
+            ),
             viewH,
           )
         : 1;

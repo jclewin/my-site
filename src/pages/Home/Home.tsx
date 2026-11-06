@@ -45,9 +45,7 @@ function Home() {
     let lastRule = "";
     let currentId = "";
     const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const links = [
-      ...nav.querySelectorAll<HTMLAnchorElement>("a[href^='#']"),
-    ];
+    const links = [...nav.querySelectorAll<HTMLAnchorElement>("a[href^='#']")];
     let sectionTops: Array<{ id: string; top: number }> = [];
 
     const measureSections = () => {
@@ -191,7 +189,9 @@ function Home() {
     const stacked = isStacked();
     const imageTop = readChrome().frameTop;
     const frame = document.querySelector<HTMLElement>(".profile-frame");
-    const meet = stacked ? imageTop + (frame?.offsetHeight ?? 0) + 28 : imageTop;
+    const meet = stacked
+      ? imageTop + (frame?.offsetHeight ?? 0) + 28
+      : imageTop;
     const docTop = documentTop(hold);
     history.pushState(null, "", "#profile");
     window.scrollTo({

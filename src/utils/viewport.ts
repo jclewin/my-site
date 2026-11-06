@@ -2,10 +2,13 @@ const NARROW = 760;
 const SHORT = 520;
 const HEIGHT_SLOP = 128;
 
+const MOBILE_FACE_DROP = 72;
+
 export type Chrome = {
   nav: number;
   sticky: number;
   frameTop: number;
+  faceDrop: number;
   safeTop: number;
   safeBottom: number;
 };
@@ -23,6 +26,7 @@ let chrome: Chrome = {
   nav: 76,
   sticky: 132,
   frameTop: 148,
+  faceDrop: 0,
   safeTop: 0,
   safeBottom: 0,
 };
@@ -50,11 +54,13 @@ function publish(insets: Insets) {
   const short = height <= SHORT;
   const nav = short ? 56 + insets.top : narrow ? 64 + insets.top : 76;
   const sticky = short ? nav + 8 : narrow ? nav + 20 : 132;
-  const frameTop = short || narrow ? sticky : 148;
+  const faceDrop = narrow ? MOBILE_FACE_DROP : 0;
+  const frameTop = (short || narrow ? sticky : 148) + faceDrop;
   chrome = {
     nav,
     sticky,
     frameTop,
+    faceDrop,
     safeTop: insets.top,
     safeBottom: insets.bottom,
   };

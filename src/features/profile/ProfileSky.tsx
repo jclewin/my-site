@@ -52,7 +52,8 @@ export default function ProfileSky() {
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const skills = document.getElementById("skills");
     const projects = document.getElementById("projects");
-    const stage = projects?.querySelector<HTMLElement>(".projects-stage") ?? null;
+    const stage =
+      projects?.querySelector<HTMLElement>(".projects-stage") ?? null;
     const pin = stage?.parentElement ?? null;
     const started = performance.now();
     const anchor = { x: 0, y: 0, radius: 1 };
@@ -67,7 +68,8 @@ export default function ProfileSky() {
     const place = () => {
       syncViewport();
       const portrait = parent.querySelector<HTMLElement>(".profile-frame");
-      const top = readChrome().frameTop;
+      const { frameTop, faceDrop } = readChrome();
+      const top = frameTop - faceDrop;
       const width = portrait?.offsetWidth || stableViewport().width * 0.28;
       const height = portrait?.offsetHeight || width * (638 / 475);
       const left = portrait?.style.left
@@ -76,9 +78,15 @@ export default function ProfileSky() {
           ? portrait.getBoundingClientRect().left
           : window.innerWidth * 0.08;
       const radius = width * 0.78;
+      const fixed = portrait
+        ? getComputedStyle(portrait).position === "fixed"
+        : false;
       anchor.radius = radius;
       anchor.x = Math.round(left + width / 2);
-      anchor.y = Math.round(Math.max(top + height * 0.42, NAV_CLEAR + radius));
+      anchor.y = Math.round(
+        Math.max(top + height * 0.42, NAV_CLEAR + radius) +
+          (fixed ? faceDrop : 0),
+      );
     };
 
     const draw = (time: number) => {
@@ -115,7 +123,8 @@ export default function ProfileSky() {
         ctx.fillRect(0, 0, width, height);
 
         for (const star of STARS) {
-          const twinkle = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(time * 1.1 + star.phase));
+          const twinkle =
+            0.35 + 0.65 * (0.5 + 0.5 * Math.sin(time * 1.1 + star.phase));
           const x = star.x * width * 0.72;
           const y = star.y * height * 0.7;
           if (Math.hypot(x - cx, y - cy) < radius * 0.85) continue;
@@ -125,9 +134,19 @@ export default function ProfileSky() {
         }
       }
 
-      const bloom = ctx.createRadialGradient(cx, cy, radius * 0.2, cx, cy, radius * 1.85);
+      const bloom = ctx.createRadialGradient(
+        cx,
+        cy,
+        radius * 0.2,
+        cx,
+        cy,
+        radius * 1.85,
+      );
       bloom.addColorStop(0, `rgba(255, 211, 25, ${0.28 * sun})`);
-      bloom.addColorStop(0.28, `rgba(255, 118, 255, ${0.2 * sun + 0.05 * blend})`);
+      bloom.addColorStop(
+        0.28,
+        `rgba(255, 118, 255, ${0.2 * sun + 0.05 * blend})`,
+      );
       bloom.addColorStop(0.55, `rgba(84, 13, 110, ${0.16})`);
       bloom.addColorStop(0.78, `rgba(45, 226, 230, ${0.08 * blend})`);
       bloom.addColorStop(1, "rgba(17, 17, 19, 0)");
@@ -163,9 +182,10 @@ export default function ProfileSky() {
         ctx.clip();
         ctx.lineCap = "round";
         RINGS.forEach((ring, index) => {
-          ctx.strokeStyle = index === 1
-            ? "rgba(255, 118, 255, 0.32)"
-            : "rgba(45, 226, 230, 0.28)";
+          ctx.strokeStyle =
+            index === 1
+              ? "rgba(255, 118, 255, 0.32)"
+              : "rgba(45, 226, 230, 0.28)";
           ctx.lineWidth = 1.1 * scale;
           ctx.beginPath();
           ctx.arc(cx, cy, radius * ring, 0, Math.PI * 2);
@@ -187,7 +207,13 @@ export default function ProfileSky() {
             ? "rgba(255, 211, 25, 0.95)"
             : "rgba(45, 226, 230, 0.95)";
           ctx.beginPath();
-          ctx.arc(Math.cos(angle) * dist, Math.sin(angle) * dist, 2.4 * scale, 0, Math.PI * 2);
+          ctx.arc(
+            Math.cos(angle) * dist,
+            Math.sin(angle) * dist,
+            2.4 * scale,
+            0,
+            Math.PI * 2,
+          );
           ctx.fill();
         }
         ctx.restore();
@@ -228,7 +254,8 @@ export default function ProfileSky() {
     };
 
     const wake = () => {
-      if (!frame && alive && !document.hidden) frame = requestAnimationFrame(tick);
+      if (!frame && alive && !document.hidden)
+        frame = requestAnimationFrame(tick);
     };
 
     let handoffClear = 0;
@@ -268,8 +295,10 @@ export default function ProfileSky() {
       const stageTop = stage
         ? stuckTop(stageDoc - scrollY, pinTop, pinHeight, stageHeight, sticky)
         : viewH + 1;
-      const cover = !stage || motion.matches ? 0 : projectsCover(stageTop, viewH);
-      const skillsOn = !!skills && skillsTop < mid - 24 && skillsBottom > mid + 24;
+      const cover =
+        !stage || motion.matches ? 0 : projectsCover(stageTop, viewH);
+      const skillsOn =
+        !!skills && skillsTop < mid - 24 && skillsBottom > mid + 24;
       const profileOn = profileTop < mid - 24 && profileBottom > mid + 24;
       const near =
         (!!skills && skillsBottom > 0 && skillsTop < viewH) ||

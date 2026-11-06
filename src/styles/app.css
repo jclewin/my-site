@@ -270,7 +270,8 @@
   margin: 0 auto;
   /* Bottom padding keeps the exit runway. The hold distance is subtracted
      because .profile-spacer adds that same distance. */
-  padding: 36px 28px calc(var(--vh) * 130 - var(--profile-hold, calc(var(--vh) * 52)));
+  padding: 36px 28px
+    calc(var(--vh) * 130 - var(--profile-hold, calc(var(--vh) * 52)));
   box-sizing: border-box;
 }
 
@@ -395,13 +396,19 @@
     gap: 28px;
     padding-top: 72px;
     padding-right: max(22px, var(--safe-right));
-    padding-bottom: calc(var(--vh) * 118 - var(--profile-hold, calc(var(--vh) * 52)));
+    padding-bottom: calc(
+      var(--vh) * 118 - var(--profile-hold, calc(var(--vh) * 52))
+    );
     padding-left: max(22px, var(--safe-left));
   }
 
   .profile-slot,
   .profile-frame {
-    width: min(70vw, 250px, max(136px, calc((var(--vh) * 100 - 540px) * 0.744)));
+    width: min(
+      70vw,
+      250px,
+      max(136px, calc((var(--vh) * 100 - 540px) * 0.744))
+    );
   }
 
   .profile-hold {
@@ -412,6 +419,7 @@
   .profile-copy {
     top: var(--profile-stick, var(--frame-top));
     padding-left: 0;
+    text-align: center;
   }
 
   .profile-copy h2 {
@@ -1688,7 +1696,8 @@
   }
 
   .project-card.is-work:hover:not(.is-hot):not(:focus-within) .project-face,
-  .project-card.is-personal:hover:not(.is-hot):not(:focus-within) .project-face {
+  .project-card.is-personal:hover:not(.is-hot):not(:focus-within)
+    .project-face {
     border-color: #3a3844;
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
   }
