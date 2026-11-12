@@ -97,6 +97,35 @@
   top: 0;
   left: 0;
   z-index: 50;
+  display: block;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: var(--bg);
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  overflow: hidden;
+  transform-origin: top left;
+  cursor: pointer;
+  /* Safari paints a native button face, and will not lay out a grid
+     on a button, unless appearance is cleared. */
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.logo-mark {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
   display: grid;
   grid-template-columns:
     var(--stroke, 20vh) var(--j-flex, 1fr) var(--stroke, 20vh)
@@ -104,17 +133,10 @@
   grid-template-rows:
     var(--stroke, 20vh) var(--mid, 1fr) var(--stroke, 20vh)
     var(--stroke, 20vh);
-  width: 100%;
-  height: 100%;
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: var(--bg);
-  overflow: hidden;
-  transform-origin: top left;
-  cursor: pointer;
-  will-change: transform;
+  pointer-events: none;
+  /* Keep the stencil above the WebGL field. Safari otherwise
+     composites the canvas over these cells. */
+  transform: translateZ(0);
 }
 
 .logo:focus-visible {
@@ -136,15 +158,355 @@
   position: relative;
   z-index: 1;
   background: var(--bg);
+  /* Cover the hairline Safari leaves between grid tracks. */
+  box-shadow: 0 0 0 0.5px var(--bg);
 }
 
 .cell.on {
   background: transparent;
+  box-shadow: none;
+}
+
+/* Over the pattern, under the black cells, so the sunset only
+   shows inside the letter. All of it fades once JL docks in the nav. */
+.logo-sunset,
+.logo-stripes,
+.logo-laser {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  opacity: calc(1 - min(1, var(--scroll) * 1.45));
+}
+
+.logo-sunset,
+.logo-stripes {
+  inset: 0;
+}
+
+.logo-sunset {
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 34%,
+    rgba(255, 211, 25, 0.28) 50%,
+    rgba(255, 118, 255, 0.34) 66%,
+    rgba(84, 13, 110, 0.2) 100%
+  );
+  mix-blend-mode: soft-light;
+}
+
+.logo-stripes {
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 4.7%,
+    rgba(255, 236, 170, 0.75) 4.7%,
+    rgba(255, 118, 255, 0.4) 4.95%,
+    rgba(6, 2, 14, 0.9) 5.25%,
+    rgba(6, 2, 14, 0.9) 6.2%,
+    rgba(122, 246, 255, 0.55) 6.45%,
+    transparent 6.75%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 16%,
+    #000 34%,
+    #000 56%,
+    transparent 68%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 16%,
+    #000 34%,
+    #000 56%,
+    transparent 68%
+  );
+}
+
+.logo-floor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  height: 42%;
+  overflow: hidden;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(8, 0, 22, 0) 0%,
+    rgba(8, 0, 22, 0.45) 16%,
+    rgba(8, 0, 22, 0.78) 100%
+  );
+  opacity: calc(1 - min(1, var(--scroll) * 1.45));
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 16%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 16%);
+}
+
+.logo-floor::before {
+  content: "";
+  position: absolute;
+  left: -80%;
+  bottom: -6%;
+  width: 260%;
+  height: 190%;
+  background-image:
+    repeating-linear-gradient(
+      to right,
+      transparent 0 54px,
+      rgba(255, 118, 255, 0.95) 54px 57px,
+      transparent 57px 112px
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0 28px,
+      rgba(122, 246, 255, 0.95) 28px 31px,
+      transparent 31px 58px
+    );
+  transform: perspective(520px) rotateX(56deg);
+  transform-origin: center bottom;
+}
+
+.logo-laser {
+  left: 0;
+  right: 0;
+  top: 61%;
+  height: max(2px, calc(var(--stroke, 20vh) * 0.016));
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    #fff3a0 14%,
+    #ff76ff 46%,
+    #7af6ff 78%,
+    transparent 100%
+  );
+  box-shadow:
+    0 0 6px 1px rgba(255, 243, 160, 0.95),
+    0 0 16px 3px rgba(255, 118, 255, 0.8),
+    0 0 32px 8px rgba(45, 226, 230, 0.4);
+}
+
+/* Neon tube and outrun floor. Both fade with the sunset grade
+   once JL docks in the nav, so the mark stays the plain pattern. */
+.logo-fx {
+  --neon: max(1.5px, calc(var(--stroke, 20vh) * 0.016));
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  opacity: calc(1 - min(1, var(--scroll) * 1.45));
+}
+
+.logo-sun-glow {
+  fill: url("#logo-sun-glow-fill");
+}
+
+.logo-sun-cut {
+  fill: #111113;
+}
+
+.logo-grid-line {
+  stroke: rgba(255, 118, 255, 0.62);
+  stroke-width: 1.5;
+}
+
+.logo-grid-h {
+  stroke: rgba(45, 226, 230, 0.42);
+}
+
+.logo-horizon {
+  stroke: #7af6ff;
+  stroke-width: 1.75;
+  filter: drop-shadow(0 0 8px rgba(255, 118, 255, 0.95));
+}
+
+.logo-star {
+  fill: #fff;
+}
+
+.logo-neon rect {
+  fill: #ff8ef2;
+}
+
+.logo-neon {
+  filter:
+    drop-shadow(
+      0 0 max(1px, calc(var(--stroke) * 0.012)) rgba(255, 236, 255, 0.95)
+    )
+    drop-shadow(
+      0 0 max(2px, calc(var(--stroke) * 0.028)) rgba(255, 70, 210, 0.9)
+    )
+    drop-shadow(
+      0 0 max(3px, calc(var(--stroke) * 0.055)) rgba(45, 226, 230, 0.55)
+    );
+}
+
+.hole {
+  fill: #000;
+}
+
+.hole-j-cap {
+  x: 0;
+  y: 0;
+  width: calc(var(--stroke) * 2 + var(--j-flex));
+  height: var(--stroke);
+}
+
+.hole-j-stem {
+  x: calc(var(--stroke) + var(--j-flex));
+  y: var(--stroke);
+  width: var(--stroke);
+  height: calc(var(--mid) + var(--stroke) * 2);
+}
+
+.hole-j-stub {
+  x: 0;
+  y: calc(var(--stroke) + var(--mid));
+  width: var(--stroke);
+  height: var(--stroke);
+}
+
+.hole-j-foot {
+  x: 0;
+  y: calc(var(--stroke) * 2 + var(--mid));
+  width: calc(var(--stroke) + var(--j-flex));
+  height: var(--stroke);
+}
+
+.hole-l-stem {
+  x: calc(var(--stroke) * 3 + var(--j-flex));
+  y: 0;
+  width: var(--stroke);
+  height: 100%;
+}
+
+.hole-l-foot {
+  x: calc(var(--stroke) * 4 + var(--j-flex));
+  y: calc(var(--stroke) + var(--mid));
+  width: var(--l-flex);
+  height: calc(var(--stroke) * 2);
+}
+
+.n-j-top {
+  x: 0;
+  y: calc(var(--neon) * -0.5);
+  width: calc(var(--stroke) * 2 + var(--j-flex));
+  height: var(--neon);
+}
+
+.n-j-right {
+  x: calc(var(--stroke) * 2 + var(--j-flex) - var(--neon) / 2);
+  y: 0;
+  width: var(--neon);
+  height: 100%;
+}
+
+.n-j-bottom {
+  x: 0;
+  y: calc(100% - var(--neon) / 2);
+  width: calc(var(--stroke) * 2 + var(--j-flex));
+  height: var(--neon);
+}
+
+.n-j-left-top {
+  x: calc(var(--neon) * -0.5);
+  y: 0;
+  width: var(--neon);
+  height: var(--stroke);
+}
+
+.n-j-left-low {
+  x: calc(var(--neon) * -0.5);
+  y: calc(var(--stroke) + var(--mid));
+  width: var(--neon);
+  height: calc(var(--stroke) * 2);
+}
+
+.n-j-under {
+  x: 0;
+  y: calc(var(--stroke) - var(--neon) / 2);
+  width: calc(var(--stroke) + var(--j-flex));
+  height: var(--neon);
+}
+
+.n-j-stem {
+  x: calc(var(--stroke) + var(--j-flex) - var(--neon) / 2);
+  y: var(--stroke);
+  width: var(--neon);
+  height: var(--mid);
+}
+
+.n-j-stub-top {
+  x: 0;
+  y: calc(var(--stroke) + var(--mid) - var(--neon) / 2);
+  width: var(--stroke);
+  height: var(--neon);
+}
+
+.n-j-stub {
+  x: calc(var(--stroke) - var(--neon) / 2);
+  y: calc(var(--stroke) + var(--mid));
+  width: var(--neon);
+  height: var(--stroke);
+}
+
+.n-j-base {
+  x: var(--stroke);
+  y: calc(var(--stroke) * 2 + var(--mid) - var(--neon) / 2);
+  width: var(--j-flex);
+  height: var(--neon);
+}
+
+.n-l-top {
+  x: calc(var(--stroke) * 3 + var(--j-flex));
+  y: calc(var(--neon) * -0.5);
+  width: var(--stroke);
+  height: var(--neon);
+}
+
+.n-l-left {
+  x: calc(var(--stroke) * 3 + var(--j-flex) - var(--neon) / 2);
+  y: 0;
+  width: var(--neon);
+  height: 100%;
+}
+
+.n-l-stem {
+  x: calc(var(--stroke) * 4 + var(--j-flex) - var(--neon) / 2);
+  y: 0;
+  width: var(--neon);
+  height: calc(var(--stroke) + var(--mid));
+}
+
+.n-l-foot {
+  x: calc(var(--stroke) * 4 + var(--j-flex));
+  y: calc(var(--stroke) + var(--mid) - var(--neon) / 2);
+  width: var(--l-flex);
+  height: var(--neon);
+}
+
+.n-l-right {
+  x: calc(100% - var(--neon) / 2);
+  y: calc(var(--stroke) + var(--mid));
+  width: var(--neon);
+  height: calc(var(--stroke) * 2);
+}
+
+.n-l-bottom {
+  x: calc(var(--stroke) * 3 + var(--j-flex));
+  y: calc(100% - var(--neon) / 2);
+  width: calc(var(--stroke) + var(--l-flex));
+  height: var(--neon);
 }
 
 .scroll-hint {
   position: fixed;
-  bottom: max(28px, calc(var(--safe-bottom) + 12px));
+  bottom: max(36px, calc(var(--safe-bottom) + 16px));
   left: 0;
   right: 0;
   z-index: 60;
@@ -163,8 +525,16 @@
 
 .scroll-hint > span {
   display: block;
-  animation: scroll-hint-bounce 2.8s cubic-bezier(0.45, 0.05, 0.55, 0.95) 3s
-    infinite;
+  animation: scroll-hint-bounce 2.15s ease-in-out 0.4s infinite;
+}
+
+@media (max-width: 760px) {
+  .scroll-word {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    letter-spacing: 0.42em;
+    line-height: 1;
+  }
 }
 
 .scroll-hint .scroll-chevron {
@@ -174,8 +544,7 @@
   border-right: 1.5px solid currentColor;
   border-bottom: 1.5px solid currentColor;
   transform: rotate(45deg);
-  animation: scroll-chevron 2.8s cubic-bezier(0.45, 0.05, 0.55, 0.95) 3s
-    infinite;
+  animation: scroll-chevron 2.15s ease-in-out 0.4s infinite;
 }
 
 .scroll-hint.is-paused,
@@ -185,36 +554,54 @@
 
 @keyframes scroll-hint-bounce {
   0%,
-  16%,
+  10%,
   100% {
     transform: translate3d(0, 0, 0);
   }
 
-  46% {
-    transform: translate3d(0, 8px, 0);
+  28% {
+    transform: translate3d(0, 16px, 0);
   }
 
-  64% {
-    transform: translate3d(0, -2px, 0);
+  46% {
+    transform: translate3d(0, -7px, 0);
+  }
+
+  60% {
+    transform: translate3d(0, 4px, 0);
+  }
+
+  74% {
+    transform: translate3d(0, 0, 0);
   }
 }
 
 @keyframes scroll-chevron {
   0%,
-  16%,
+  10%,
   100% {
-    transform: translate3d(0, 0, 0) rotate(45deg);
-    opacity: 0.8;
+    transform: translate3d(0, 0, 0) scale(1) rotate(45deg);
+    opacity: 0.9;
   }
 
-  46% {
-    transform: translate3d(0, 12px, 0) rotate(45deg);
-    opacity: 0.3;
+  32% {
+    transform: translate3d(0, 26px, 0) scale(1.18) rotate(45deg);
+    opacity: 0.4;
+  }
+
+  50% {
+    transform: translate3d(0, -9px, 0) scale(1) rotate(45deg);
+    opacity: 1;
   }
 
   64% {
-    transform: translate3d(0, -2px, 0) rotate(45deg);
-    opacity: 0.8;
+    transform: translate3d(0, 5px, 0) scale(1.04) rotate(45deg);
+    opacity: 0.75;
+  }
+
+  78% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(45deg);
+    opacity: 0.9;
   }
 }
 
@@ -303,7 +690,9 @@
 .profile-copy {
   position: sticky;
   top: var(--profile-stick, var(--frame-top));
+  z-index: 3;
   padding-left: clamp(56px, 6vw, 112px);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 0 14px rgba(0, 0, 0, 0.75);
 }
 
 .profile-frame img,
@@ -1173,6 +1562,7 @@
 .project-go-label {
   position: relative;
   z-index: 2;
+  transform: translateZ(0);
   color: #fff;
   font-size: 13px;
   font-weight: 700;
@@ -1441,6 +1831,8 @@
   font: inherit;
   font-size: 16px;
   outline: none;
+  -webkit-appearance: none;
+  appearance: none;
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease;
@@ -1492,8 +1884,13 @@
   margin: 0 0 22px;
   padding: 0;
   border: 0;
+  border-radius: 14px;
   background: transparent;
+  color: inherit;
+  font: inherit;
   cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
   filter: drop-shadow(0 0 14px rgba(255, 118, 255, 0.45))
     drop-shadow(0 0 24px rgba(45, 226, 230, 0.28));
   transition:
@@ -1578,6 +1975,7 @@
 .contact-send-label {
   position: relative;
   z-index: 2;
+  transform: translateZ(0);
   color: #fff;
   font-size: 13px;
   font-weight: 700;

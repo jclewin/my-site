@@ -17,7 +17,40 @@ uniform vec2 uSize;
 uniform vec2 uViewport;
 uniform float uTime;
 uniform vec2 uMouse;
+uniform vec4 uLetter;
+uniform vec2 uMaskSize;
+uniform float uClip;
+uniform sampler2D uMask;
 varying vec2 vUv;
+
+float trackColumn(float x, vec4 t) {
+  float s = t.x;
+  float x1 = s;
+  float x2 = s + t.y;
+  float x3 = x2 + s;
+  float x4 = x3 + s;
+  float x5 = x4 + s;
+  float x6 = x5 + t.w;
+  if (x < 0.0 || x >= x6) return -1.0;
+  if (x < x1) return 0.0;
+  if (x < x2) return 1.0;
+  if (x < x3) return 2.0;
+  if (x < x4) return 3.0;
+  if (x < x5) return 4.0;
+  return 5.0;
+}
+
+float trackRow(float y, vec4 t) {
+  float y1 = t.x;
+  float y2 = t.x + t.z;
+  float y3 = y2 + t.x;
+  float y4 = y3 + t.x;
+  if (y < 0.0 || y >= y4) return -1.0;
+  if (y < y1) return 0.0;
+  if (y < y2) return 1.0;
+  if (y < y3) return 2.0;
+  return 3.0;
+}
 
 vec3 ramp(float t) {
   vec3 yellow = vec3(1.0, 0.8275, 0.0980); // #FFD319
@@ -68,7 +101,20 @@ void main() {
   tone = cos(tone * cos(vec3(d, a, 2.5)) * 0.5 + 0.5);
   float t = dot(tone, vec3(0.42, 0.36, 0.22)) * 0.5 + 0.5;
   vec3 col = ramp(t);
-  gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
+  float alpha = 1.0;
+  if (uClip > 0.5) {
+    vec2 local = vec2(vUv.x * uSize.x, (1.0 - vUv.y) * uSize.y);
+    float colIndex = trackColumn(local.x, uLetter);
+    float rowIndex = trackRow(local.y, uLetter);
+    if (uLetter.x <= 0.0 || colIndex < 0.0 || rowIndex < 0.0) {
+      alpha = 0.0;
+    } else {
+      vec2 maskUv = (vec2(colIndex, rowIndex) + 0.5) / uMaskSize;
+      alpha = texture2D(uMask, maskUv).r;
+    }
+  }
+  col = clamp(col, 0.0, 1.0);
+  gl_FragColor = vec4(col * alpha, alpha);
 }
 `;
 
@@ -86,11 +132,22 @@ function reducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-function mountField(canvas: HTMLCanvasElement) {
+const LETTER_COLUMNS = 6;
+const LETTER_ROWS = 4;
+
+function mountField(
+  canvas: HTMLCanvasElement,
+  letterMask?: readonly number[],
+  letterColumns = LETTER_COLUMNS,
+) {
+  const clipLetter =
+    !!letterMask &&
+    letterColumns === LETTER_COLUMNS &&
+    letterMask.length === LETTER_COLUMNS * LETTER_ROWS;
   const gl = canvas.getContext("webgl", {
-    alpha: false,
+    alpha: clipLetter,
     antialias: false,
-    premultipliedAlpha: false,
+    premultipliedAlpha: clipLetter,
   });
   if (!gl) return () => {};
 
@@ -121,7 +178,55 @@ function mountField(canvas: HTMLCanvasElement) {
   const viewport = gl.getUniformLocation(program, "uViewport");
   const time = gl.getUniformLocation(program, "uTime");
   const mouse = gl.getUniformLocation(program, "uMouse");
+  const letter = gl.getUniformLocation(program, "uLetter");
+  const maskSize = gl.getUniformLocation(program, "uMaskSize");
+  const clip = gl.getUniformLocation(program, "uClip");
+  const maskSampler = gl.getUniformLocation(program, "uMask");
   const pointer = { x: 0.5, y: 0.5 };
+  const maskTexture = gl.createTexture();
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, maskTexture);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+  if (clipLetter && letterMask) {
+    const pixels = new Uint8Array(LETTER_COLUMNS * LETTER_ROWS * 4);
+    for (let i = 0; i < letterMask.length; i++) {
+      const on = letterMask[i] ? 255 : 0;
+      pixels[i * 4] = on;
+      pixels[i * 4 + 3] = 255;
+    }
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      LETTER_COLUMNS,
+      LETTER_ROWS,
+      0,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      pixels,
+    );
+    gl.uniform2f(maskSize, LETTER_COLUMNS, LETTER_ROWS);
+  } else {
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      1,
+      1,
+      0,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      new Uint8Array([255, 255, 255, 255]),
+    );
+    gl.uniform2f(maskSize, 1, 1);
+  }
+  gl.uniform1i(maskSampler, 0);
+  gl.uniform1f(clip, clipLetter ? 1 : 0);
+  gl.uniform4f(letter, 0, 0, 0, 0);
   const reduced = reducedMotion();
   let originX = 0;
   let originY = 0;
@@ -132,6 +237,21 @@ function mountField(canvas: HTMLCanvasElement) {
   let visible = true;
   let running = false;
   let dirty = true;
+  let letterKey = "";
+
+  const syncLetter = () => {
+    if (!clipLetter) return;
+    const style = getComputedStyle(canvas);
+    const next = ["--stroke", "--j-flex", "--mid", "--l-flex"]
+      .map((name) => style.getPropertyValue(name).trim())
+      .join(" ");
+    if (next === letterKey) return;
+    letterKey = next;
+    const [stroke, jFlex, mid, lFlex] = next
+      .split(" ")
+      .map((part) => parseFloat(part) || 0);
+    gl.uniform4f(letter, stroke, jFlex, mid, lFlex);
+  };
 
   const measure = () => {
     const rect = canvas.getBoundingClientRect();
@@ -153,6 +273,7 @@ function mountField(canvas: HTMLCanvasElement) {
 
   const draw = (now: number) => {
     if (dirty) measure();
+    syncLetter();
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.uniform2f(origin, originX, originY);
     gl.uniform2f(size, width, height);
@@ -189,17 +310,21 @@ function mountField(canvas: HTMLCanvasElement) {
     pointer.y = 1 - event.clientY / Math.max(1, window.innerHeight);
   };
 
-  const resizeObserver = new ResizeObserver(() => {
+  const redraw = () => {
+    if (!alive || !visible) return;
     dirty = true;
-    if (visible) wake();
-  });
+    if (reduced) {
+      draw(performance.now());
+      return;
+    }
+    wake();
+  };
+
+  const resizeObserver = new ResizeObserver(redraw);
   resizeObserver.observe(canvas);
   const intersection = new IntersectionObserver((entries) => {
     visible = entries.some((entry) => entry.isIntersecting);
-    if (visible) {
-      dirty = true;
-      wake();
-    }
+    if (visible) redraw();
   });
   intersection.observe(canvas);
   window.addEventListener("scroll", mark, { passive: true });
@@ -218,6 +343,7 @@ function mountField(canvas: HTMLCanvasElement) {
     window.removeEventListener("scroll", mark);
     window.removeEventListener("resize", mark);
     window.removeEventListener("pointermove", onPointer);
+    gl.deleteTexture(maskTexture);
     gl.deleteBuffer(buffer);
     gl.deleteProgram(program);
     gl.deleteShader(vertex);
@@ -227,16 +353,20 @@ function mountField(canvas: HTMLCanvasElement) {
 
 export default function SynthwaveSheen({
   className = "logo-sheen",
+  letterMask,
+  letterColumns = LETTER_COLUMNS,
 }: {
   className?: string;
+  letterMask?: readonly number[];
+  letterColumns?: number;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    return mountField(canvas);
-  }, []);
+    return mountField(canvas, letterMask, letterColumns);
+  }, [letterMask, letterColumns]);
 
   return <canvas ref={canvasRef} className={className} aria-hidden="true" />;
 }

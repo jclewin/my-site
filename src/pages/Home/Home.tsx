@@ -279,7 +279,7 @@ function Home() {
       <Logo logoRef={logoRef} onHome={goHome} />
 
       <p className="scroll-hint" ref={hintRef}>
-        <span>Scroll</span>
+        <span className="scroll-word">Scroll</span>
         <span className="scroll-chevron" aria-hidden="true" />
       </p>
 
