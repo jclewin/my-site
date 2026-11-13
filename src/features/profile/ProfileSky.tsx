@@ -276,8 +276,8 @@ export default function ProfileSky() {
       profileHeight = parent.offsetHeight;
       skillsDoc = skills ? documentTop(skills) : 0;
       skillsHeight = skills?.offsetHeight ?? 0;
-      stageDoc = stage ? documentTop(stage) : 0;
-      pinDoc = pin ? documentTop(pin) : stageDoc;
+      pinDoc = pin ? documentTop(pin) : 0;
+      stageDoc = pin ? pinDoc : stage ? documentTop(stage) : 0;
       pinHeight = pin?.offsetHeight ?? 0;
       stageHeight = Math.max(1, viewH - sticky);
     };

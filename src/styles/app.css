@@ -528,7 +528,19 @@
   animation: scroll-hint-bounce 2.15s ease-in-out 0.4s infinite;
 }
 
+.scroll-word-narrow {
+  display: none;
+}
+
 @media (max-width: 760px) {
+  .scroll-word-wide {
+    display: none;
+  }
+
+  .scroll-word-narrow {
+    display: inline;
+  }
+
   .scroll-word {
     writing-mode: vertical-rl;
     text-orientation: upright;
@@ -1241,6 +1253,7 @@
   flex-direction: column;
   height: calc(var(--vh) * 100 - var(--sticky));
   overflow: hidden;
+  overflow: clip;
   isolation: isolate;
   background: transparent;
 }
@@ -1252,8 +1265,9 @@
   inset: 0;
   background: var(--bg);
   pointer-events: none;
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 46%);
-  mask-image: linear-gradient(to bottom, transparent 0%, #000 46%);
+  mask-mode: alpha;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #fff 46%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #fff 46%);
 }
 
 .projects-intro {
@@ -1273,6 +1287,8 @@
   flex: 1;
   min-height: 280px;
   overflow: hidden;
+  overflow: clip;
+  isolation: isolate;
 }
 
 .projects-trails {
@@ -1283,18 +1299,19 @@
   height: 100%;
   display: block;
   pointer-events: none;
+  mask-mode: alpha;
   -webkit-mask-image: linear-gradient(
     to bottom,
     transparent,
-    #000 14%,
-    #000 86%,
+    #fff 14%,
+    #fff 86%,
     transparent
   );
   mask-image: linear-gradient(
     to bottom,
     transparent,
-    #000 14%,
-    #000 86%,
+    #fff 14%,
+    #fff 86%,
     transparent
   );
 }
@@ -1306,18 +1323,19 @@
   margin: 0;
   padding: 0;
   list-style: none;
+  mask-mode: alpha;
   -webkit-mask-image: linear-gradient(
     90deg,
     transparent,
-    #000 5%,
-    #000 95%,
+    #fff 5%,
+    #fff 95%,
     transparent
   );
   mask-image: linear-gradient(
     90deg,
     transparent,
-    #000 5%,
-    #000 95%,
+    #fff 5%,
+    #fff 95%,
     transparent
   );
 }

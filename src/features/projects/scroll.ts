@@ -26,6 +26,7 @@ function smoothstep(t: number) {
   return x * x * (3 - 2 * x);
 }
 
+/** 0 is off the left, `dock` is the center, 1 is off the right. */
 export function projectShift(
   progress: number,
   index: number,
@@ -40,11 +41,11 @@ export function projectShift(
 
   if (progress < holdStart) {
     const t = smoothstep((progress - (holdStart - slide)) / slide);
-    return dock * t;
+    return 1 - (1 - dock) * t;
   }
   if (progress > holdEnd && index < n - 1) {
     const t = smoothstep((progress - holdEnd) / slide);
-    return dock + (1 - dock) * t;
+    return dock * (1 - t);
   }
   return dock;
 }

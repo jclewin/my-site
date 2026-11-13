@@ -81,6 +81,13 @@ function dockLocal(width: number, viewW: number, focusRatio: number) {
 
 const scrollPass = CSS.supports("animation-timeline", "scroll()");
 
+function handPlaced(viewW: number) {
+  return (
+    viewW <= 760 ||
+    window.matchMedia("(pointer: coarse)").matches
+  );
+}
+
 function passFrames(
   index: number,
   count: number,
@@ -222,7 +229,9 @@ export default function Projects() {
         (card): card is HTMLLIElement => card !== null,
       );
       pinDoc = documentTop(pin);
-      stageDoc = stage ? documentTop(stage) : pinDoc;
+      // offsetTop on the sticky stage follows the stuck box, so a
+      // measure taken mid-scroll makes the stage fade out on the way up.
+      stageDoc = pinDoc;
       pinHeight = pin.offsetHeight;
       const { height: viewH } = stableViewport();
       const sticky = readChrome().sticky;
@@ -235,6 +244,7 @@ export default function Projects() {
         !passStyle ||
         !lane ||
         motion.matches ||
+        handPlaced(viewW) ||
         viewW < 1 ||
         !widths.length
       ) {

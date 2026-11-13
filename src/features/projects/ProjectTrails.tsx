@@ -203,6 +203,15 @@ export default function ProjectTrails() {
       if (!document.hidden) wake();
     };
 
+    const coarse = window.matchMedia("(pointer: coarse), (max-width: 760px)");
+    const paintOnScroll = () => {
+      if (!alive || document.hidden || motion.matches || !coarse.matches) return;
+      const rect = parent.getBoundingClientRect();
+      if (rect.bottom <= 0 || rect.top >= window.innerHeight) return;
+      visible = true;
+      draw((performance.now() - started) / 1000);
+    };
+
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(parent);
     const intersection = new IntersectionObserver((entries) => {
@@ -212,6 +221,7 @@ export default function ProjectTrails() {
     intersection.observe(parent);
     motion.addEventListener("change", onMotion);
     document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("scroll", paintOnScroll, { passive: true });
     resize();
 
     return () => {
@@ -221,6 +231,7 @@ export default function ProjectTrails() {
       intersection.disconnect();
       motion.removeEventListener("change", onMotion);
       document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("scroll", paintOnScroll);
     };
   }, []);
 
