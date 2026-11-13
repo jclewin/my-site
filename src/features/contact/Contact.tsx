@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import SynthwaveSheen from "../../components/common/SynthwaveSheen";
+import Footer from "../../components/layout/Footer";
 import ContactField from "./ContactField";
 
 const INBOX = "hello@jordanlewin.ca";
+const SENT_HOLD_MS = 3400;
 
 type Notice = { tone: "ok" | "bad"; text: string };
 
@@ -23,17 +25,61 @@ function noticeFor(data: { error?: string; message?: string } | null): string {
   return "That didn't send. Try again in a moment.";
 }
 
+const TRIANGLE = "39,107 361,107 200,387";
+
+function SentScene() {
+  return (
+    <div className="contact-launch" aria-hidden="true">
+      <div className="contact-launch-ring">
+        <span className="contact-launch-mail">
+          <svg viewBox="0 0 128 88">
+            <rect
+              className="contact-launch-mail-body"
+              x="6"
+              y="16"
+              width="116"
+              height="64"
+            />
+            <path
+              className="contact-launch-mail-flap"
+              d="M10 22 L64 50 L118 22"
+            />
+          </svg>
+        </span>
+        <svg className="contact-launch-peaks" viewBox="0 0 400 400">
+          <g className="contact-launch-tris">
+            <polygon className="contact-launch-tri" points={TRIANGLE} />
+            <polygon className="contact-launch-tri" points={TRIANGLE} />
+            <polygon className="contact-launch-tri" points={TRIANGLE} />
+          </g>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
 export default function Contact() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [website, setWebsite] = useState("");
   const [pending, setPending] = useState(false);
+  const [sent, setSent] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
+  const hold = useRef(false);
+
+  useEffect(() => {
+    if (!sent) return;
+    const timer = window.setTimeout(() => {
+      hold.current = false;
+      setSent(false);
+    }, SENT_HOLD_MS);
+    return () => window.clearTimeout(timer);
+  }, [sent]);
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (pending) return;
+    if (pending || hold.current) return;
     setPending(true);
     setNotice(null);
 
@@ -54,6 +100,8 @@ export default function Contact() {
         setName("");
         setEmail("");
         setMessage("");
+        hold.current = true;
+        setSent(true);
         setNotice({
           tone: "ok",
           text: data.dev
@@ -85,72 +133,86 @@ export default function Contact() {
           Send a note and it lands at <a href={`mailto:${INBOX}`}>{INBOX}</a>.
         </p>
 
-        <form className="contact-card" onSubmit={onSubmit} noValidate>
-          <div className="contact-row">
+        <form
+          className={sent ? "contact-card is-sent" : "contact-card"}
+          onSubmit={onSubmit}
+          noValidate
+        >
+          <SentScene />
+          <div className="contact-fields">
+            <div className="contact-row">
+              <label>
+                <span>Name</span>
+                <input
+                  name="name"
+                  autoComplete="name"
+                  maxLength={80}
+                  value={name}
+                  placeholder="Your name"
+                  required
+                  disabled={pending || sent}
+                  onChange={(event) => setName(event.target.value)}
+                />
+              </label>
+              <label>
+                <span>Email</span>
+                <input
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  inputMode="email"
+                  maxLength={200}
+                  value={email}
+                  placeholder="you@domain.com"
+                  required
+                  disabled={pending || sent}
+                  onChange={(event) => setEmail(event.target.value)}
+                />
+              </label>
+            </div>
             <label>
-              <span>Name</span>
-              <input
-                name="name"
-                autoComplete="name"
-                maxLength={80}
-                value={name}
-                placeholder="Your name"
+              <span>Note</span>
+              <textarea
+                name="message"
+                rows={6}
+                maxLength={4000}
+                value={message}
+                placeholder="Say hello."
                 required
-                onChange={(event) => setName(event.target.value)}
+                disabled={pending || sent}
+                onChange={(event) => setMessage(event.target.value)}
               />
             </label>
-            <label>
-              <span>Email</span>
-              <input
-                name="email"
-                type="email"
-                autoComplete="email"
-                inputMode="email"
-                maxLength={200}
-                value={email}
-                placeholder="you@domain.com"
-                required
-                onChange={(event) => setEmail(event.target.value)}
-              />
-            </label>
-          </div>
-          <label>
-            <span>Note</span>
-            <textarea
-              name="message"
-              rows={6}
-              maxLength={4000}
-              value={message}
-              placeholder="Say hello."
-              required
-              onChange={(event) => setMessage(event.target.value)}
-            />
-          </label>
 
-          <div className="contact-honey" aria-hidden="true" inert>
-            <label>
-              Website
-              <input
-                name="website"
-                tabIndex={-1}
-                autoComplete="off"
-                value={website}
-                onChange={(event) => setWebsite(event.target.value)}
-              />
-            </label>
-          </div>
+            <div className="contact-honey" aria-hidden="true" inert>
+              <label>
+                Website
+                <input
+                  name="website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={website}
+                  onChange={(event) => setWebsite(event.target.value)}
+                />
+              </label>
+            </div>
 
-          <div className="contact-actions">
-            <button className="contact-send" type="submit" disabled={pending}>
-              <span className="contact-send-border">
-                <span className="contact-send-face">
-                  <SynthwaveSheen className="contact-send-sheen" />
-                  <span className="contact-send-label">
-                    {pending ? "Sending" : "Send"}
+            <div className="contact-actions">
+              <button
+                className="contact-send"
+                type="submit"
+                disabled={pending || sent}
+              >
+                <span className="contact-send-border">
+                  <span className="contact-send-face">
+                    <SynthwaveSheen className="contact-send-sheen" />
+                    <span className="contact-send-label">
+                      {sent ? "Sent" : pending ? "Sending" : "Send"}
+                    </span>
                   </span>
                 </span>
-              </span>
-            </button>
+              </button>
+            </div>
           </div>
 
           <p
@@ -163,6 +225,8 @@ export default function Contact() {
           </p>
         </form>
       </div>
+
+      <Footer />
     </section>
   );
 }

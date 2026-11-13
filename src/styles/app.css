@@ -334,8 +334,7 @@
 }
 
 .logo-neon {
-  filter:
-    drop-shadow(
+  filter: drop-shadow(
       0 0 max(1px, calc(var(--stroke) * 0.012)) rgba(255, 236, 255, 0.95)
     )
     drop-shadow(
@@ -704,7 +703,9 @@
   top: var(--profile-stick, var(--frame-top));
   z-index: 3;
   padding-left: clamp(56px, 6vw, 112px);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 0 14px rgba(0, 0, 0, 0.75);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.9),
+    0 0 14px rgba(0, 0, 0, 0.75);
 }
 
 .profile-frame img,
@@ -2049,10 +2050,324 @@
   color: #ff76ff;
 }
 
+.contact-fields {
+  transition:
+    opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.contact-launch {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  border-radius: inherit;
+  background: #100814;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.contact-launch::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      circle at 50% 42%,
+      rgba(255, 211, 25, 0.16),
+      transparent 18%
+    ),
+    radial-gradient(
+      circle at 50% 42%,
+      rgba(255, 118, 255, 0.32),
+      transparent 42%
+    ),
+    linear-gradient(180deg, rgba(16, 8, 20, 0.08), rgba(16, 8, 20, 0.42));
+}
+
+.contact-launch-ring {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  width: min(360px, 78%);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+}
+
+.contact-launch-peaks {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.contact-launch-tris polygon {
+  fill: none;
+  stroke-width: 3.5;
+  stroke-linejoin: miter;
+  filter: drop-shadow(0 0 5px rgba(255, 118, 255, 0.7));
+}
+
+.contact-launch-tris polygon:nth-child(1) {
+  stroke: #ff76ff;
+}
+
+.contact-launch-tris polygon:nth-child(2) {
+  stroke: #2de2e6;
+  filter: drop-shadow(0 0 5px rgba(45, 226, 230, 0.7));
+}
+
+.contact-launch-tris polygon:nth-child(3) {
+  stroke: #ffd319;
+  filter: drop-shadow(0 0 5px rgba(255, 211, 25, 0.65));
+}
+
+.contact-launch-tri {
+  transform-box: view-box;
+  transform-origin: center;
+}
+
+.contact-launch-tri:nth-child(1) {
+  transform: rotate(-8deg);
+}
+
+.contact-launch-tri:nth-child(2) {
+  transform: rotate(0deg);
+}
+
+.contact-launch-tri:nth-child(3) {
+  transform: rotate(8deg);
+}
+
+.contact-launch-mail {
+  position: absolute;
+  z-index: 0;
+  left: 50%;
+  top: 50%;
+  width: 30%;
+  aspect-ratio: 128 / 88;
+  filter: drop-shadow(0 0 8px rgba(45, 226, 230, 0.65));
+  opacity: 0;
+  transform: translate(-50%, -50%);
+}
+
+.contact-launch-mail svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.contact-launch-mail-body {
+  fill: #100814;
+  stroke: #2de2e6;
+  stroke-width: 4;
+}
+
+.contact-launch-mail-flap {
+  fill: none;
+  stroke: #ff76ff;
+  stroke-width: 4;
+  stroke-linejoin: miter;
+  stroke-linecap: square;
+}
+
+.contact-card.is-sent {
+  overflow: hidden;
+  animation: contact-card-glow 3.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.contact-card.is-sent .contact-fields {
+  opacity: 0;
+  filter: blur(4px);
+  pointer-events: none;
+}
+
+.contact-card.is-sent .contact-launch {
+  visibility: visible;
+  animation: contact-launch-life 3.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.contact-card.is-sent .contact-launch::before {
+  animation: contact-neon-bloom 3.4s ease-in-out forwards;
+}
+
+.contact-card.is-sent .contact-launch-tri:nth-child(1) {
+  animation: contact-tri-slow 3.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.contact-card.is-sent .contact-launch-tri:nth-child(2) {
+  animation: contact-tri-mid 3.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.contact-card.is-sent .contact-launch-tri:nth-child(3) {
+  animation: contact-tri-fast 3.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.contact-card.is-sent .contact-launch-mail {
+  animation: contact-mail-fly 3.4s linear forwards;
+}
+
+.contact-card.is-sent .contact-send:disabled {
+  cursor: default;
+}
+
+.contact-card.is-sent .contact-status {
+  position: relative;
+  z-index: 7;
+  margin-top: -8px;
+  padding: 10px 16px;
+  border: 1px solid rgba(45, 226, 230, 0.35);
+  border-radius: 999px;
+  background: rgba(16, 8, 20, 0.72);
+  text-align: center;
+  text-shadow: 0 0 14px rgba(45, 226, 230, 0.75);
+  backdrop-filter: blur(8px);
+}
+
+@keyframes contact-card-glow {
+  0% {
+    border-color: rgba(45, 226, 230, 0.75);
+    box-shadow:
+      0 24px 80px rgba(0, 0, 0, 0.55),
+      0 0 0 1px rgba(45, 226, 230, 0.5),
+      0 0 42px rgba(255, 118, 255, 0.4);
+  }
+
+  46% {
+    border-color: rgba(255, 211, 25, 0.85);
+    box-shadow:
+      0 24px 80px rgba(0, 0, 0, 0.55),
+      0 0 0 1px rgba(255, 118, 255, 0.75),
+      0 0 72px rgba(255, 118, 255, 0.48),
+      0 0 96px rgba(45, 226, 230, 0.28);
+  }
+
+  100% {
+    border-color: rgba(255, 118, 255, 0.32);
+    box-shadow:
+      0 24px 80px rgba(0, 0, 0, 0.55),
+      0 0 0 1px rgba(45, 226, 230, 0.14),
+      0 0 48px rgba(84, 13, 110, 0.28);
+  }
+}
+
+@keyframes contact-neon-bloom {
+  0% {
+    opacity: 0.35;
+  }
+
+  28% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes contact-launch-life {
+  0% {
+    opacity: 0;
+  }
+
+  14% {
+    opacity: 1;
+  }
+
+  80% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes contact-tri-slow {
+  from {
+    transform: rotate(-8deg);
+  }
+
+  to {
+    transform: rotate(6deg);
+  }
+}
+
+@keyframes contact-tri-mid {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(18deg);
+  }
+}
+
+@keyframes contact-tri-fast {
+  from {
+    transform: rotate(8deg);
+  }
+
+  to {
+    transform: rotate(32deg);
+  }
+}
+
+@keyframes contact-mail-fly {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(0deg) scale(0.94);
+  }
+
+  12% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(-3deg) scale(1);
+  }
+
+  25% {
+    opacity: 1;
+    transform: translate(-45%, -54%) rotate(-4deg) scale(0.96);
+  }
+
+  38% {
+    opacity: 1;
+    transform: translate(-31%, -66%) rotate(-8deg) scale(0.85);
+  }
+
+  52% {
+    opacity: 1;
+    transform: translate(-13%, -81%) rotate(-13deg) scale(0.7);
+  }
+
+  65% {
+    opacity: 1;
+    transform: translate(6%, -97%) rotate(-18deg) scale(0.55);
+  }
+
+  78% {
+    opacity: 0.8;
+    transform: translate(23%, -111%) rotate(-22deg) scale(0.41);
+  }
+
+  90% {
+    opacity: 0.35;
+    transform: translate(33%, -119%) rotate(-25deg) scale(0.33);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(36%, -122%) rotate(-26deg) scale(0.3);
+  }
+}
+
 @media (max-width: 760px) {
   .contact {
     padding: calc(var(--sticky) + 24px) max(18px, var(--safe-right))
-      calc(64px + var(--safe-bottom)) max(18px, var(--safe-left));
+      calc(88px + var(--safe-bottom)) max(18px, var(--safe-left));
   }
 }
 
@@ -2080,8 +2395,27 @@
 
   .contact-send,
   .contact-card input,
-  .contact-card textarea {
+  .contact-card textarea,
+  .contact-fields {
     transition: none;
+  }
+
+  .contact-card.is-sent,
+  .contact-card.is-sent .contact-launch,
+  .contact-card.is-sent .contact-launch::before,
+  .contact-card.is-sent .contact-launch-tri,
+  .contact-card.is-sent .contact-launch-mail {
+    animation: none;
+  }
+
+  .contact-card.is-sent .contact-launch,
+  .contact-card.is-sent .contact-launch-peaks,
+  .contact-card.is-sent .contact-launch-mail {
+    opacity: 1;
+  }
+
+  .contact-card.is-sent .contact-fields {
+    filter: none;
   }
 }
 
@@ -2138,5 +2472,70 @@
   .nav a[aria-current="page"] .line,
   .nav a:active .line {
     width: 100%;
+  }
+}
+
+.site-footer {
+  position: absolute;
+  z-index: 2;
+  right: 0;
+  bottom: calc(22px + var(--safe-bottom));
+  left: 0;
+  margin: 0;
+  padding: 0 18px;
+  background: none;
+  text-align: center;
+  pointer-events: none;
+}
+
+.site-footer-rights {
+  margin: 0;
+  padding-left: 0.22em;
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: 0.22em;
+  line-height: 1.7;
+  text-transform: uppercase;
+  text-wrap: balance;
+  background-image: linear-gradient(
+    100deg,
+    #ffd319 0%,
+    #ff76ff 32%,
+    #2de2e6 58%,
+    #ff76ff 82%,
+    #ffd319 100%
+  );
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 5px rgba(255, 118, 255, 0.9))
+    drop-shadow(0 0 14px rgba(45, 226, 230, 0.55))
+    drop-shadow(0 0 24px rgba(255, 211, 25, 0.28));
+  animation: rights-neon 7s ease-in-out infinite;
+}
+
+@keyframes rights-neon {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@media (max-width: 640px) {
+  .site-footer-rights {
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    padding-left: 0.14em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-footer-rights {
+    animation: none;
   }
 }
