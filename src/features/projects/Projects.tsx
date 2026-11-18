@@ -54,13 +54,6 @@ const PROJECTS: Project[] = [
     text: "Features taken from design through to the cluster.",
   },
   {
-    id: "site",
-    kind: "personal",
-    title: "This site",
-    text: "The page you're on.",
-    href: "https://jordanlewin.ca",
-  },
-  {
     id: "wishlist",
     kind: "personal",
     title: "Wishlist It",
@@ -92,10 +85,7 @@ function dockLocal(width: number, viewW: number, focusRatio: number) {
 const scrollPass = CSS.supports("animation-timeline", "scroll()");
 
 function handPlaced(viewW: number) {
-  return (
-    viewW <= 760 ||
-    window.matchMedia("(pointer: coarse)").matches
-  );
+  return viewW <= 760 || window.matchMedia("(pointer: coarse)").matches;
 }
 
 function passFrames(
