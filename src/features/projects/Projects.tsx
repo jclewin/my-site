@@ -16,6 +16,7 @@ import {
 } from "./scroll";
 
 type MarkName = "portal" | "cluster";
+type BadgeName = "gift";
 
 type Project = {
   id: string;
@@ -24,6 +25,7 @@ type Project = {
   text?: string;
   href?: string;
   mark?: MarkName;
+  badge?: BadgeName;
 };
 
 const PROJECTS: Project[] = [
@@ -57,6 +59,14 @@ const PROJECTS: Project[] = [
     title: "This site",
     text: "The page you're on.",
     href: "https://jordanlewin.ca",
+  },
+  {
+    id: "wishlist",
+    kind: "personal",
+    title: "Wishlist It",
+    text: "Thoughtful gifts, shared moments, and zero duplicate presents.",
+    href: "https://wishlist-it.app",
+    badge: "gift",
   },
 ];
 
@@ -156,6 +166,28 @@ function Mark({ name }: { name: MarkName }) {
   );
 }
 
+function Badge({ name }: { name: BadgeName }) {
+  if (name !== "gift") return null;
+
+  return (
+    <svg
+      className="project-badge"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12 7v14" />
+      <path d="M20 11v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8" />
+      <path d="M7.5 7a1 1 0 0 1 0-5A4.8 8 0 0 1 12 7a4.8 8 0 0 1 4.5-5 1 1 0 0 1 0 5" />
+      <rect x="3" y="7" width="18" height="4" rx="1" />
+    </svg>
+  );
+}
+
 function Go({ href }: { href: string }) {
   return (
     <a className="project-go" href={href}>
@@ -187,6 +219,7 @@ function Face({ project }: { project: Project }) {
 
   return (
     <div className="project-face">
+      {project.badge ? <Badge name={project.badge} /> : null}
       <p className="project-kind">{kind}</p>
       <h3>{project.title}</h3>
       {project.text ? <p className="project-text">{project.text}</p> : null}
@@ -397,7 +430,7 @@ export default function Projects() {
           <div className="projects-intro">
             <p className="eyebrow">Projects</p>
             <h2 id="projects-title">Things I've Done</h2>
-            <p className="lede">Professional work, and a personal project.</p>
+            <p className="lede">Professional work, and personal projects.</p>
           </div>
           <div className="projects-road" ref={roadRef}>
             <ProjectTrails />
