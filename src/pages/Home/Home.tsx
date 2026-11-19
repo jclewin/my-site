@@ -303,16 +303,13 @@ function Home() {
                   Full-stack developer and technical lead
                 </p>
                 <p className="lede">
-                  Six years building microservices and internal developer
-                  portals. I treat every change as part of a wider web of
-                  services, teams, and workflows, and I look for the side
-                  effects before they spread.
+                  I treat every change as part of a wider web of services,
+                  teams, and workflows, and I look for the side effects before
+                  they spread.
                 </p>
                 <p className="lede">
-                  At TELUS I led full-stack teams shipping OpenShift
-                  applications, automated workflows for more than 200
-                  engineering teams, and took features from Figma through to
-                  deployment.
+                  I designed and built a guest inbox and message automation,
+                  and led portals for more than 200 engineering teams.
                 </p>
               </div>
               <div className="profile-spacer" aria-hidden="true" />

@@ -1359,18 +1359,6 @@
   animation-range: var(--pass-start) var(--pass-end);
 }
 
-.project-card.is-icon {
-  width: min(320px, 72vw);
-}
-
-.is-icon .project-face {
-  display: grid;
-  place-items: center;
-  height: 320px;
-  min-height: 320px;
-  padding: 24px;
-}
-
 .project-face {
   position: relative;
   display: flex;
@@ -1424,12 +1412,23 @@
 }
 
 .project-kind {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
   margin: 0;
   color: #2de2e6;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.18em;
   text-transform: uppercase;
+}
+
+.project-place {
+  color: #b9b6c2;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: none;
 }
 
 .is-personal .project-kind {
@@ -1451,6 +1450,15 @@
   line-height: 1.45;
 }
 
+.project-stack {
+  margin: 18px 0 0;
+  color: #9b98a6;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 .project-link {
   display: flex;
   flex-direction: column;
@@ -1466,51 +1474,6 @@
   color: #ffd319;
   font-size: 16px;
   letter-spacing: 0.02em;
-}
-
-.project-mark {
-  width: 104px;
-  height: 104px;
-  display: block;
-  fill: none;
-  stroke: #2de2e6;
-  stroke-width: 1.75;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  filter: drop-shadow(0 0 10px rgba(45, 226, 230, 0.7));
-  transform: translateY(-16px);
-}
-
-.project-caption {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 28px 12px 12px;
-  background: linear-gradient(to top, #24232d 58%, transparent);
-  opacity: 0;
-  transform: translateY(6px);
-  transition:
-    opacity 0.25s ease,
-    transform 0.25s ease;
-}
-
-.project-card.is-hot .project-caption,
-.project-card:hover .project-caption {
-  opacity: 1;
-  transform: none;
-}
-
-.project-caption-title {
-  font-size: 16px;
-  font-weight: 560;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-  text-align: center;
 }
 
 .project-go {
@@ -1669,13 +1632,9 @@
     font-size: 16px;
   }
 
-  .project-card.is-icon {
-    width: min(240px, 72vw);
-  }
-
-  .is-icon .project-face {
-    height: min(240px, 72vw, 42vh);
-    min-height: 0;
+  .project-stack {
+    margin-top: 14px;
+    font-size: 12px;
   }
 }
 
@@ -1716,13 +1675,13 @@
     font-size: 15px;
   }
 
-  .project-link {
-    padding-top: 12px;
+  .project-stack {
+    margin-top: 8px;
+    font-size: 11px;
   }
 
-  .is-icon .project-face {
-    height: min(168px, 36vh);
-    min-height: 0;
+  .project-link {
+    padding-top: 12px;
   }
 
   .skills-board {
@@ -1772,26 +1731,13 @@
   }
 
   .project-card,
-  .project-card.is-alt,
-  .project-card.is-icon {
+  .project-card.is-alt {
     position: relative;
     top: auto;
     left: auto;
     width: auto;
     transform: none !important;
     will-change: auto;
-  }
-
-  .is-icon .project-face {
-    width: 100%;
-    height: 280px;
-    min-height: 280px;
-  }
-
-  .project-caption {
-    opacity: 1;
-    transform: none;
-    transition: none;
   }
 
   .project-go,
@@ -2489,11 +2435,6 @@
     .project-face {
     border-color: #3a3844;
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
-  }
-
-  .project-card:hover:not(.is-hot) .project-caption {
-    opacity: 0;
-    transform: translateY(6px);
   }
 
   .project-go:hover,

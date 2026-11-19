@@ -15,49 +15,58 @@ import {
   stuckTop,
 } from "./scroll";
 
-type MarkName = "portal" | "cluster";
 type BadgeName = "gift";
 
 type Project = {
   id: string;
   kind: "work" | "personal";
   title: string;
-  text?: string;
+  text: string;
+  place?: string;
+  stack?: string[];
   href?: string;
-  mark?: MarkName;
   badge?: BadgeName;
 };
 
 const PROJECTS: Project[] = [
   {
-    id: "portal",
+    id: "inbox",
     kind: "work",
-    title: "Developer portal",
-    mark: "portal",
+    place: "S&T Properties",
+    title: "Guest inbox",
+    text: "One inbox for Airbnb, VRBO, and Booking.com. Messages arrive live, with the booking, the unit, and open tickets beside the thread.",
+    stack: ["React", "TypeScript", "GraphQL"],
   },
   {
-    id: "workflows",
+    id: "automation",
     kind: "work",
-    title: "Workflow automation",
-    text: "Automated workflows for more than 200 engineering teams.",
+    place: "S&T Properties",
+    title: "Message automation",
+    text: "A unit's details write its guest messages. A three-step wizard previews the chat and fills in names, dates, and stay info.",
+    stack: ["React", "TypeScript", "Figma"],
   },
   {
-    id: "openshift",
+    id: "portals",
     kind: "work",
-    title: "OpenShift applications",
-    mark: "cluster",
+    place: "TELUS",
+    title: "Engineering portals",
+    text: "Ten portals for 200+ teams planning the core network. Taken from Figma onto OpenShift, with a shared release log for what shipped.",
+    stack: ["React", "Node.js", "OpenShift"],
   },
   {
-    id: "delivery",
+    id: "docs",
     kind: "work",
-    title: "Figma to deployment",
-    text: "Features taken from design through to the cluster.",
+    place: "TELUS",
+    title: "Portal docs",
+    text: "Guides and API references that publish themselves. Onboarding a repo wires its docs into the site.",
+    stack: ["Docusaurus", "Node.js"],
   },
   {
     id: "wishlist",
     kind: "personal",
     title: "Wishlist It",
-    text: "Thoughtful gifts, shared moments, and zero duplicate presents.",
+    text: "Shared lists where a reserved gift stays a surprise. Live updates, link previews, and a reminder before the day.",
+    stack: ["React", "Fastify", "Postgres"],
     href: "https://wishlist-it.app",
     badge: "gift",
   },
@@ -131,29 +140,7 @@ function hostLabel(href: string) {
 }
 
 function variantOf(project: Project) {
-  if (project.href) return "link";
-  if (project.mark && !project.text) return "icon";
-  return "text";
-}
-
-function Mark({ name }: { name: MarkName }) {
-  if (name === "cluster") {
-    return (
-      <svg className="project-mark" viewBox="0 0 64 64" aria-hidden="true">
-        <circle cx="32" cy="14" r="5" />
-        <circle cx="14" cy="48" r="5" />
-        <circle cx="50" cy="48" r="5" />
-        <path d="M28.4 17.8 17.2 43.2M35.6 17.8 46.8 43.2M19 48h26" />
-      </svg>
-    );
-  }
-
-  return (
-    <svg className="project-mark" viewBox="0 0 64 64" aria-hidden="true">
-      <rect x="8" y="12" width="48" height="40" rx="6" />
-      <path d="M8 24h48M24 24v28" />
-    </svg>
-  );
+  return project.href ? "link" : "text";
 }
 
 function Badge({ name }: { name: BadgeName }) {
@@ -193,26 +180,25 @@ function Go({ href }: { href: string }) {
 
 function Face({ project }: { project: Project }) {
   const kind = KIND_LABEL[project.kind];
-  const variant = variantOf(project);
-
-  if (variant === "icon" && project.mark) {
-    return (
-      <div className="project-face">
-        <Mark name={project.mark} />
-        <span className="project-caption">
-          <span className="project-kind">{kind}</span>
-          <span className="project-caption-title">{project.title}</span>
-        </span>
-      </div>
-    );
-  }
 
   return (
     <div className="project-face">
       {project.badge ? <Badge name={project.badge} /> : null}
-      <p className="project-kind">{kind}</p>
+      <p className="project-kind">
+        {project.place ? (
+          <>
+            {kind}
+            <span className="project-place">{project.place}</span>
+          </>
+        ) : (
+          kind
+        )}
+      </p>
       <h3>{project.title}</h3>
-      {project.text ? <p className="project-text">{project.text}</p> : null}
+      <p className="project-text">{project.text}</p>
+      {project.stack?.length ? (
+        <p className="project-stack">{project.stack.join(" · ")}</p>
+      ) : null}
       {project.href ? (
         <div className="project-link">
           <span className="project-url">{hostLabel(project.href)}</span>
@@ -435,11 +421,6 @@ export default function Projects() {
                     index % 2
                       ? `project-card is-${variantOf(project)} is-${project.kind} is-alt`
                       : `project-card is-${variantOf(project)} is-${project.kind}`
-                  }
-                  aria-label={
-                    variantOf(project) === "icon"
-                      ? `${project.title}, ${KIND_LABEL[project.kind]}`
-                      : undefined
                   }
                 >
                   <Face project={project} />
